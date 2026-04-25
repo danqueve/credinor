@@ -1,0 +1,12 @@
+{
+    "name": "credinor-prestamos",
+    "version": "1.0.0",
+    "description": "Build assets para sistema de préstamos",
+    "scripts": {
+        "dev": "tailwindcss -i ./public/assets/css/app.src.css -o ./public/assets/css/app.css --watch",
+        "build": "tailwindcss -i ./public/assets/css/app.src.css -o ./public/assets/css/app.css --minify"
+    },
+    "devDependencies": {
+        "tailwindcss": "^3.4.0"
+    }
+}

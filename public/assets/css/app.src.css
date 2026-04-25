@@ -1,0 +1,174 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+    :root {
+        /* OKLCH Color System */
+        /* Brand Colors - Electric Indigo */
+        --brand-50: oklch(0.97 0.01 260);
+        --brand-100: oklch(0.93 0.03 260);
+        --brand-200: oklch(0.88 0.06 260);
+        --brand-300: oklch(0.81 0.10 260);
+        --brand-400: oklch(0.72 0.15 260);
+        --brand-500: oklch(0.60 0.18 260);
+        --brand-600: oklch(0.50 0.16 260);
+        --brand-700: oklch(0.42 0.13 260);
+        --brand-800: oklch(0.35 0.11 260);
+        --brand-900: oklch(0.28 0.09 260);
+
+        /* Accent Colors - Tech Cyan */
+        --accent-500: oklch(0.70 0.15 220);
+    }
+
+    body {
+        /* Usamos Inter para cuerpo, muy legible */
+        font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        background-color: oklch(0.99 0.005 260); /* Very soft slate-white */
+        color: oklch(0.20 0.01 260);
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* Headings usan Outfit para look tecnológico */
+    h1, h2, h3, h4, h5, h6 {
+        font-family: 'Outfit', system-ui, -apple-system, sans-serif;
+        letter-spacing: -0.02em;
+    }
+
+    h1 { @apply text-2xl font-bold text-slate-800; }
+    h2 { @apply text-xl font-bold text-slate-800; }
+    h3 { @apply text-lg font-semibold text-slate-700; }
+}
+
+@layer components {
+    /* === BOTONES CON MAGIA === */
+    .btn {
+        @apply inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl font-medium text-sm transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2;
+        /* Micro-interacciones (Design Spells) */
+        transform-origin: center;
+    }
+    .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+    }
+    .btn:active {
+        transform: scale(0.97);
+        box-shadow: none;
+    }
+    
+    .btn-primary {
+        background-color: var(--brand-600);
+        color: white;
+    }
+    .btn-primary:hover {
+        background-color: var(--brand-500);
+        box-shadow: 0 10px 15px -3px color-mix(in oklch, var(--brand-500) 40%, transparent), 0 4px 6px -4px color-mix(in oklch, var(--brand-500) 40%, transparent);
+    }
+    .btn-primary:focus { ring-color: var(--brand-500); }
+
+    .btn-secondary {
+        @apply bg-white text-slate-700 border border-slate-200;
+    }
+    .btn-secondary:hover {
+        @apply bg-slate-50 border-slate-300 text-slate-900;
+    }
+
+    .btn-danger {
+        @apply bg-red-500 text-white hover:bg-red-400 focus:ring-red-500;
+        box-shadow: 0 4px 6px -1px rgb(239 68 68 / 0.2);
+    }
+    .btn-danger:hover {
+        box-shadow: 0 10px 15px -3px rgb(239 68 68 / 0.3);
+    }
+
+    .btn-success {
+        @apply bg-emerald-500 text-white hover:bg-emerald-400 focus:ring-emerald-500;
+        box-shadow: 0 4px 6px -1px rgb(16 185 129 / 0.2);
+    }
+    .btn-success:hover {
+        box-shadow: 0 10px 15px -3px rgb(16 185 129 / 0.3);
+    }
+
+    /* === CARDS (Modernas, sin borde oscuro, sombras suaves flotantes) === */
+    .card {
+        @apply bg-white rounded-2xl border border-slate-100/80 p-5 transition-all duration-300;
+        box-shadow: 0 4px 20px -2px rgb(0 0 0 / 0.03);
+    }
+    .card:hover {
+        box-shadow: 0 10px 25px -5px rgb(0 0 0 / 0.05);
+    }
+    .card-header {
+        @apply flex items-center justify-between mb-5 pb-4 border-b border-slate-100/80;
+    }
+
+    /* === FORMULARIOS === */
+    .form-label {
+        @apply block text-sm font-semibold text-slate-700 mb-1.5;
+    }
+    .form-input, .form-select {
+        @apply w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 py-2.5 text-sm text-slate-800
+               transition-all duration-200
+               focus:outline-none focus:ring-2 focus:border-transparent focus:bg-white;
+    }
+    .form-input:focus, .form-select:focus {
+        --tw-ring-color: var(--brand-500);
+    }
+    .form-error {
+        @apply text-xs text-red-500 mt-1.5 font-medium;
+    }
+
+    /* === BADGES (Colores vibrantes) === */
+    .badge {
+        @apply inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold tracking-wide uppercase transition-colors;
+    }
+    .badge-pendiente  { @apply bg-yellow-50 text-yellow-700 border border-yellow-200/50; }
+    .badge-activo     { @apply bg-emerald-50 text-emerald-700 border border-emerald-200/50; }
+    .badge-finalizado { @apply bg-slate-100 text-slate-600 border border-slate-200/50; }
+    .badge-rechazado  { @apply bg-red-50 text-red-700 border border-red-200/50; }
+    .badge-vencida    { @apply bg-rose-50 text-rose-700 border border-rose-200/50; }
+    .badge-pagada     { @apply bg-teal-50 text-teal-700 border border-teal-200/50; }
+    .badge-parcial    { @apply bg-amber-50 text-amber-700 border border-amber-200/50; }
+
+    /* === TABLAS === */
+    .table-container { 
+        @apply overflow-x-auto rounded-2xl border border-slate-100/80 bg-white; 
+        box-shadow: 0 4px 20px -2px rgb(0 0 0 / 0.02);
+    }
+    .table { @apply w-full text-sm text-left; }
+    .table thead { 
+        @apply bg-slate-50/80 text-slate-500 uppercase tracking-wider text-[10px] font-bold; 
+    }
+    .table th { @apply px-5 py-4; }
+    .table td { @apply px-5 py-3.5 border-t border-slate-50; }
+    .table tbody tr { @apply hover:bg-slate-50/50 transition-colors duration-150; }
+
+    /* === KPI CARDS (Dashboard Bento Grid) === */
+    .kpi-card { 
+        @apply card flex flex-col justify-between relative overflow-hidden; 
+        min-height: 120px;
+    }
+    .kpi-value { 
+        @apply text-4xl tracking-tight; 
+        font-family: 'Outfit', sans-serif;
+        font-weight: 800;
+    }
+    .kpi-label { @apply text-sm font-semibold text-slate-500 mt-1; }
+    .kpi-icon {
+        @apply absolute -right-4 -bottom-4 text-[100px] opacity-5 pointer-events-none;
+    }
+
+    /* === ALERTAS === */
+    .alert {
+        @apply rounded-xl p-4 text-sm mb-5 flex items-start gap-3 border;
+    }
+    .alert-success { @apply bg-emerald-50 text-emerald-800 border-emerald-200/60; }
+    .alert-error   { @apply bg-red-50 text-red-800 border-red-200/60; }
+    .alert-warning { @apply bg-amber-50 text-amber-800 border-amber-200/60; }
+    .alert-info    { @apply bg-blue-50 text-blue-800 border-blue-200/60; }
+    
+    /* Glassmorphism nav */
+    .glass-nav {
+        @apply bg-white/70 backdrop-blur-md border-b border-slate-200/50 sticky top-0 z-50;
+    }
+}
