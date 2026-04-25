@@ -87,11 +87,13 @@ $router->get('/admin/creditos/{id}/autorizar',       [\App\Controllers\CreditosC
 $router->post('/admin/creditos/{id}/autorizar',      [\App\Controllers\CreditosController::class, 'autorizar'],    $auth);
 $router->post('/admin/creditos/{id}/rechazar',       [\App\Controllers\CreditosController::class, 'rechazar'],     $auth);
 
-// ——— COBRADOR ————————————————————————————————————————————
-$router->get('/cobrador/agenda',      [\App\Controllers\CobradorController::class, 'agenda'],     $auth);
-$router->get('/cobrador/historial',   [\App\Controllers\CobradorController::class, 'historial'],  $auth);
-$router->get('/cobrador/caja',        [\App\Controllers\CobradorController::class, 'caja'],       $auth);
-$router->post('/cobrador/caja/cerrar',[\App\Controllers\CobradorController::class, 'cerrarCaja'], $auth);
+    // ——— COBRADOR ————————————————————————————————————————————
+    $router->get('/cobrador/agenda',      [\App\Controllers\CobradorController::class, 'agenda'],     $auth);
+    $router->get('/cobrador/historial',   [\App\Controllers\CobradorController::class, 'historial'],  $auth);
+    $router->get('/cobrador/caja',        [\App\Controllers\CobradorController::class, 'caja'],       $auth);
+    $router->post('/cobrador/caja/cerrar',[\App\Controllers\CobradorController::class, 'cerrarCaja'], $auth);
+    $router->get('/cobrador/rendiciones', [\App\Controllers\CobradorController::class, 'rendiciones'], $auth);
+    $router->get('/cobrador/rendiciones/{id}', [\App\Controllers\CobradorController::class, 'rendicionDetalle'], $auth);
 
 // ——— PAGOS ———————————————————————————————————————————————
 $router->get('/cobrador/pago/{credito_id}/{cuota_id}',  [\App\Controllers\PagosController::class, 'form'],   $auth);

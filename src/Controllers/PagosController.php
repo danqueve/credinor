@@ -26,7 +26,7 @@ class PagosController extends Controller
     // GET /cobrador/pago/{credito_id}/{cuota_id}
     public function form(array $params): void
     {
-        $this->requireRole('cobrador');
+        $this->requireStaff();
 
         $cuotaId   = (int) $params['cuota_id'];
         $creditoId = (int) $params['credito_id'];
@@ -55,16 +55,21 @@ class PagosController extends Controller
     public function store(array $params): void
     {
         $this->validateCsrf();
-        $this->requireRole('cobrador');
+        $this->requireStaff();
 
         $cuotaId   = (int) $params['cuota_id'];
         $creditoId = (int) $params['credito_id'];
 
         $monto     = (float) str_replace(',', '.', Request::post('monto', '0'));
         $montoMora = (float) str_replace(',', '.', Request::post('monto_mora', '0'));
+        
+        $metodoPago = Request::post('metodo_pago', 'efectivo');
+        if (!in_array($metodoPago, ['efectivo','transferencia'], true)) {
+            $metodoPago = 'efectivo';
+        }
 
         try {
-            $pagoId = $this->service->registrar($cuotaId, $monto, $montoMora);
+            $pagoId = $this->service->registrar($cuotaId, $monto, $montoMora, $metodoPago);
             Session::flash('success', 'Pago registrado correctamente.');
 
             // Redirigir según opción del form
@@ -81,10 +86,11 @@ class PagosController extends Controller
     // GET /cobrador/pago/{pago_id}/recibo
     public function recibo(array $params): void
     {
+        $this->requireRole(['admin', 'cobrador', 'vendedor']);
         $pagoId = (int) $params['pago_id'];
 
-        $row = (new Pago())->getPagoConDetalles($pagoId);
-        if (!$row) Response::abort(404, 'Pago no encontrado.');
+        $pago = (new Pago())->getPagoConDetalles($pagoId);
+        if (!$pago) Response::abort(404, 'Pago no encontrado.');
 
         // Generar PDF con DomPDF
         $options = new Options();

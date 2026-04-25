@@ -77,6 +77,34 @@ class Rendicion extends Model
         return $row;
     }
 
+    public function getDelCobradorConPagos(int $id, int $cobradorId): ?array
+    {
+        $row = $this->query(
+            "SELECT r.*, u.nombre AS cobrador_nombre, s.nombre AS sucursal_nombre
+             FROM rendiciones r
+             JOIN usuarios u ON r.cobrador_id = u.id
+             JOIN sucursales s ON r.sucursal_id = s.id
+             WHERE r.id = ? AND r.cobrador_id = ?",
+            [$id, $cobradorId]
+        )->fetch();
+
+        if (!$row) return null;
+
+        $row['pagos'] = $this->query(
+            "SELECT p.*, cu.numero_cuota, cl.nombre AS cliente_nombre,
+                    cr.id AS credito_id
+             FROM pagos p
+             JOIN cuotas cu ON p.cuota_id = cu.id
+             JOIN creditos cr ON cu.credito_id = cr.id
+             JOIN clientes cl ON cr.cliente_id = cl.id
+             WHERE p.rendicion_id = ?
+             ORDER BY p.created_at ASC",
+            [$id]
+        )->fetchAll();
+
+        return $row;
+    }
+
     public function getDelCobrador(int $cobradorId, int $limit = 30): array
     {
         return $this->query(

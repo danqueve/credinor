@@ -98,6 +98,9 @@ use App\Helpers\DateHelper;
 <div class="center">
     <div class="muted" style="margin-bottom:2px">TOTAL RECIBIDO</div>
     <div class="xlarge bold"><?= MoneyHelper::format((float)$pago['monto']) ?></div>
+    <div class="muted" style="margin-top:4px; font-size:9px; text-transform:uppercase;">
+        <?= $pago['metodo_pago'] === 'transferencia' ? 'VÍA TRANSFERENCIA' : 'EN EFECTIVO' ?>
+    </div>
 </div>
 
 <hr>

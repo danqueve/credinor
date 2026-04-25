@@ -1,146 +1,248 @@
 <?php // views/vendedor/credito_form.php
 use App\Helpers\MoneyHelper;
 ?>
-<div class="max-w-2xl mx-auto space-y-5">
-    <div class="flex items-center gap-3">
-        <a href="<?= url('vendedor/creditos') ?>" class="text-gray-400 hover:text-gray-600">←</a>
-        <h1 class="text-2xl font-bold">Nueva solicitud de crédito</h1>
+<div class="max-w-3xl mx-auto space-y-6 pb-10">
+    <div class="flex items-center gap-4">
+        <a href="<?= url('vendedor/creditos') ?>" class="w-10 h-10 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-500 hover:text-brand-600 hover:border-brand-200 hover:bg-brand-50 transition-all">
+            <i class="isax isax-arrow-left-2"></i>
+        </a>
+        <div>
+            <h1 class="text-3xl font-extrabold text-slate-900 tracking-tight" style="font-family: 'Outfit', sans-serif;">
+                Nueva solicitud de crédito
+            </h1>
+            <p class="text-sm font-medium text-slate-500 mt-1">
+                Completa los datos para enviar la solicitud a autorización
+            </p>
+        </div>
     </div>
 
     <form method="POST" action="<?= url('vendedor/creditos') ?>"
-          class="card space-y-5" novalidate
+          class="space-y-6 relative" novalidate
           x-data="creditoForm()" @submit="calcular">
         <?= csrf_field() ?>
 
-        <!-- Cliente -->
-        <div>
-            <label class="form-label">Cliente <span class="text-red-500">*</span></label>
-            <?php if ($cliente): ?>
-                <div class="flex items-center gap-3 p-3 bg-brand-50 rounded-lg border border-brand-200">
-                    <span class="text-brand-700 font-medium">👤 <?= e($cliente['nombre']) ?></span>
-                    <span class="text-xs text-gray-500">DNI <?= e($cliente['dni']) ?></span>
-                    <input type="hidden" name="cliente_id" value="<?= $cliente['id'] ?>">
-                    <a href="<?= url('vendedor/creditos/nuevo') ?>" class="ml-auto text-xs text-gray-400 hover:text-gray-600">cambiar</a>
+        <div class="bg-white rounded-3xl p-6 md:p-8 border border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)] relative overflow-hidden">
+            <div class="absolute top-0 right-0 p-8 opacity-5 pointer-events-none">
+                <i class="isax isax-money-send text-8xl text-brand-600"></i>
+            </div>
+            
+            <div class="space-y-6 relative z-10">
+                <!-- Cliente -->
+                <div>
+                    <label class="form-label block text-sm font-bold text-slate-700 mb-2">Cliente Solicitante <span class="text-red-500">*</span></label>
+                    <?php if ($cliente): ?>
+                        <div class="flex items-center justify-between p-4 bg-brand-50 rounded-2xl border border-brand-200">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-full bg-brand-100 text-brand-600 flex items-center justify-center shrink-0">
+                                    <i class="isax isax-user text-xl"></i>
+                                </div>
+                                <div>
+                                    <span class="block font-bold text-brand-900"><?= e($cliente['nombre']) ?></span>
+                                    <span class="block text-xs font-medium text-brand-600/70">DNI <?= e($cliente['dni']) ?></span>
+                                </div>
+                            </div>
+                            <input type="hidden" name="cliente_id" value="<?= $cliente['id'] ?>">
+                            <a href="<?= url('vendedor/creditos/nuevo') ?>" class="text-sm font-bold text-brand-600 hover:text-brand-800 bg-white px-3 py-1.5 rounded-lg shadow-sm border border-brand-100 transition-colors">
+                                Cambiar
+                            </a>
+                        </div>
+                    <?php else: ?>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                                <i class="isax isax-user text-slate-400"></i>
+                            </div>
+                            <select name="cliente_id" class="form-select pl-10 bg-slate-50 border-slate-200 focus:bg-white focus:border-brand-500 w-full" required>
+                                <option value="">— Seleccioná un cliente —</option>
+                                <?php foreach ($clientes as $c): ?>
+                                    <option value="<?= $c['id'] ?>"><?= e($c['nombre']) ?> — DNI <?= e($c['dni']) ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                    <?php endif; ?>
                 </div>
-            <?php else: ?>
-                <select name="cliente_id" class="form-select" required>
-                    <option value="">— Seleccioná un cliente —</option>
-                    <?php foreach ($clientes as $c): ?>
-                        <option value="<?= $c['id'] ?>"><?= e($c['nombre']) ?> — DNI <?= e($c['dni']) ?></option>
-                    <?php endforeach; ?>
-                </select>
-            <?php endif; ?>
-        </div>
 
-        <!-- Montos -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-                <label for="monto_prestado" class="form-label">Monto prestado <span class="text-red-500">*</span></label>
-                <div class="relative">
-                    <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">$</span>
-                    <input id="monto_prestado" type="number" name="monto_prestado" min="1" step="0.01" required
-                           class="form-input pl-7"
-                           x-model="montoPrestado"
-                           @input="calcularDiferencia"
-                           placeholder="50000">
+                <div class="border-t border-slate-100 my-6"></div>
+
+                <!-- Montos -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div>
+                        <label for="monto_prestado" class="form-label block text-sm font-bold text-slate-700 mb-2">Monto Prestado <span class="text-red-500">*</span></label>
+                        <div class="relative">
+                            <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold">$</span>
+                            <input id="monto_prestado" type="number" name="monto_prestado" min="1" step="0.01" required
+                                   class="form-input pl-8 bg-slate-50 border-slate-200 focus:bg-white focus:border-brand-500 w-full font-bold text-lg"
+                                   x-model="montoPrestado"
+                                   @input="calcularDiferencia"
+                                   placeholder="50000">
+                        </div>
+                    </div>
+                    <div>
+                        <label for="monto_a_devolver" class="form-label block text-sm font-bold text-slate-700 mb-2">Monto a Devolver <span class="text-red-500">*</span></label>
+                        <div class="relative">
+                            <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold">$</span>
+                            <input id="monto_a_devolver" type="number" name="monto_a_devolver" min="1" step="0.01" required
+                                   class="form-input pl-8 bg-slate-50 border-slate-200 focus:bg-white focus:border-brand-500 w-full font-bold text-lg text-emerald-600 focus:text-emerald-700"
+                                   x-model="montoDevolver"
+                                   @input="calcularDiferencia"
+                                   placeholder="60000">
+                        </div>
+                    </div>
                 </div>
-            </div>
-            <div>
-                <label for="monto_a_devolver" class="form-label">Monto a devolver <span class="text-red-500">*</span></label>
-                <div class="relative">
-                    <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">$</span>
-                    <input id="monto_a_devolver" type="number" name="monto_a_devolver" min="1" step="0.01" required
-                           class="form-input pl-7"
-                           x-model="montoDevolver"
-                           @input="calcularDiferencia"
-                           placeholder="60000">
+
+                <!-- Diferencia calculada -->
+                <div class="bg-slate-900 rounded-2xl p-4 md:p-5 flex flex-wrap gap-4 md:gap-8 justify-between shadow-lg" x-show="montoPrestado > 0" x-cloak x-transition.opacity>
+                    <div>
+                        <span class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Diferencia (Interés)</span>
+                        <span class="font-bold text-lg text-white flex items-center gap-2" style="font-family: 'Outfit', sans-serif;">
+                            <i class="isax isax-wallet-add text-brand-400"></i> $<span x-text="diferencia"></span>
+                        </span>
+                    </div>
+                    <div>
+                        <span class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Tasa Aplicada</span>
+                        <span class="font-bold text-lg text-white flex items-center gap-2" style="font-family: 'Outfit', sans-serif;">
+                            <i class="isax isax-percentage-square text-amber-400"></i> <span x-text="porcentaje + '%'"></span>
+                        </span>
+                    </div>
+                    <div>
+                        <span class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Monto por Cuota (aprox)</span>
+                        <span class="font-bold text-lg text-white flex items-center gap-2" style="font-family: 'Outfit', sans-serif;">
+                            <i class="isax isax-receipt-item text-emerald-400"></i> $<span x-text="montoCuota"></span>
+                        </span>
+                    </div>
                 </div>
+
+                <div class="border-t border-slate-100 my-6"></div>
+
+                <!-- Cuotas y frecuencia -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div>
+                        <label for="cantidad_cuotas" class="form-label block text-sm font-bold text-slate-700 mb-2">Cantidad de Cuotas <span class="text-red-500">*</span></label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                                <i class="isax isax-layer text-slate-400"></i>
+                            </div>
+                            <input id="cantidad_cuotas" type="number" name="cantidad_cuotas" min="1" max="365" required
+                                   class="form-input pl-10 bg-slate-50 border-slate-200 focus:bg-white focus:border-brand-500 w-full"
+                                   x-model="cantCuotas"
+                                   @input="calcularDiferencia"
+                                   placeholder="Ej: 12">
+                        </div>
+                    </div>
+                    <div>
+                        <label for="frecuencia" class="form-label block text-sm font-bold text-slate-700 mb-2">Frecuencia de Pago <span class="text-red-500">*</span></label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                                <i class="isax isax-repeate-music text-slate-400"></i>
+                            </div>
+                            <select id="frecuencia" name="frecuencia" class="form-select pl-10 bg-slate-50 border-slate-200 focus:bg-white focus:border-brand-500 w-full" required>
+                                <option value="diaria">Diaria</option>
+                                <option value="semanal">Semanal</option>
+                                <option value="quincenal">Quincenal</option>
+                                <option value="mensual" selected>Mensual</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Fechas -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div>
+                        <label for="fecha_inicio" class="form-label block text-sm font-bold text-slate-700 mb-2">Fecha de Otorgamiento <span class="text-red-500">*</span></label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                                <i class="isax isax-calendar-1 text-slate-400"></i>
+                            </div>
+                            <input id="fecha_inicio" type="date" name="fecha_inicio" required
+                                   class="form-input pl-10 bg-slate-50 border-slate-200 focus:bg-white focus:border-brand-500 w-full"
+                                   value="<?= date('Y-m-d') ?>">
+                        </div>
+                    </div>
+                    <div>
+                        <label for="fecha_primera_cuota" class="form-label block text-sm font-bold text-slate-700 mb-2">Vencimiento 1ra Cuota <span class="text-red-500">*</span></label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                                <i class="isax isax-calendar-tick text-slate-400"></i>
+                            </div>
+                            <input id="fecha_primera_cuota" type="date" name="fecha_primera_cuota" required
+                                   class="form-input pl-10 bg-slate-50 border-slate-200 focus:bg-white focus:border-brand-500 w-full"
+                                   value="<?= date('Y-m-d', strtotime('+30 days')) ?>">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="border-t border-slate-100 my-6"></div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Mora -->
+                    <div class="bg-red-50/50 rounded-2xl border border-red-100 p-5" x-data="{ aplica: true }">
+                        <label class="flex items-center gap-3 cursor-pointer">
+                            <div class="relative flex items-center">
+                                <input id="aplica_mora" type="checkbox" name="aplica_mora" value="1"
+                                       class="w-5 h-5 rounded border-red-300 text-red-600 focus:ring-red-500 focus:ring-offset-0 cursor-pointer"
+                                       x-model="aplica" checked>
+                            </div>
+                            <div>
+                                <span class="block text-sm font-bold text-red-900">Aplicar mora por atraso</span>
+                                <span class="block text-xs font-medium text-red-600/70">Calcula interés diario sobre cuotas vencidas</span>
+                            </div>
+                        </label>
+                        
+                        <div x-show="aplica" x-cloak x-transition.opacity class="mt-4 pt-4 border-t border-red-200/50">
+                            <label for="porcentaje_mora" class="form-label block text-xs font-bold uppercase tracking-wider text-red-800 mb-2">% Mora diaria personalizado</label>
+                            <div class="flex items-center gap-2">
+                                <div class="relative w-32">
+                                    <input id="porcentaje_mora" type="number" name="porcentaje_mora_diaria"
+                                           min="0" max="5" step="0.01"
+                                           class="form-input bg-white border-red-200 focus:border-red-500 focus:ring-red-500/20 w-full"
+                                           placeholder="Ej: 0.10">
+                                </div>
+                                <span class="text-xs text-red-600 font-medium">Dejar vacío para usar la configuración global</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-5">
+                        <!-- Garante -->
+                        <div>
+                            <label for="garante_id" class="form-label block text-sm font-bold text-slate-700 mb-2">Garante (Opcional)</label>
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                                    <i class="isax isax-shield-tick text-slate-400"></i>
+                                </div>
+                                <select id="garante_id" name="garante_id" class="form-select pl-10 bg-slate-50 border-slate-200 focus:bg-white focus:border-brand-500 w-full">
+                                    <option value="">— Sin garante —</option>
+                                    <?php foreach ($garantes as $g): ?>
+                                        <option value="<?= $g['id'] ?>"><?= e($g['nombre']) ?> — DNI <?= e($g['dni']) ?></option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Observaciones -->
+                        <div>
+                            <label for="observaciones" class="form-label block text-sm font-bold text-slate-700 mb-2">Observaciones</label>
+                            <div class="relative">
+                                <div class="absolute top-3 left-3.5 flex items-start pointer-events-none">
+                                    <i class="isax isax-info-circle text-slate-400"></i>
+                                </div>
+                                <textarea id="observaciones" name="observaciones" rows="3"
+                                          class="form-input pl-10 bg-slate-50 border-slate-200 focus:bg-white focus:border-brand-500 w-full resize-none"
+                                          placeholder="Notas adicionales sobre el crédito..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
             </div>
         </div>
 
-        <!-- Diferencia calculada -->
-        <div class="rounded-lg bg-gray-50 border border-gray-200 p-3 text-sm flex flex-wrap gap-4" x-show="montoPrestado > 0">
-            <span>💰 Diferencia: <strong x-text="'$ ' + diferencia"></strong></span>
-            <span>📈 Interés: <strong x-text="porcentaje + '%'"></strong></span>
-            <span>📋 Por cuota: <strong x-text="'$ ' + montoCuota"></strong></span>
-        </div>
-
-        <!-- Cuotas y frecuencia -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-                <label for="cantidad_cuotas" class="form-label">Cantidad de cuotas <span class="text-red-500">*</span></label>
-                <input id="cantidad_cuotas" type="number" name="cantidad_cuotas" min="1" max="365" required
-                       class="form-input"
-                       x-model="cantCuotas"
-                       @input="calcularDiferencia"
-                       placeholder="12">
-            </div>
-            <div>
-                <label for="frecuencia" class="form-label">Frecuencia <span class="text-red-500">*</span></label>
-                <select id="frecuencia" name="frecuencia" class="form-select" required>
-                    <option value="semanal">Semanal</option>
-                    <option value="quincenal">Quincenal</option>
-                    <option value="mensual">Mensual</option>
-                    <option value="diaria">Diaria</option>
-                </select>
-            </div>
-        </div>
-
-        <!-- Fechas -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-                <label for="fecha_inicio" class="form-label">Fecha de inicio <span class="text-red-500">*</span></label>
-                <input id="fecha_inicio" type="date" name="fecha_inicio" required
-                       class="form-input"
-                       value="<?= date('Y-m-d') ?>">
-            </div>
-            <div>
-                <label for="fecha_primera_cuota" class="form-label">Primera cuota <span class="text-red-500">*</span></label>
-                <input id="fecha_primera_cuota" type="date" name="fecha_primera_cuota" required
-                       class="form-input"
-                       value="<?= date('Y-m-d', strtotime('+7 days')) ?>">
-            </div>
-        </div>
-
-        <!-- Mora -->
-        <div class="rounded-lg border border-gray-200 p-4 space-y-3" x-data="{ aplica: true }">
-            <div class="flex items-center gap-2">
-                <input id="aplica_mora" type="checkbox" name="aplica_mora" value="1"
-                       class="rounded border-gray-300 text-brand-600 focus:ring-brand-500"
-                       x-model="aplica" checked>
-                <label for="aplica_mora" class="text-sm font-medium text-gray-700">Aplica mora diaria</label>
-            </div>
-            <div x-show="aplica">
-                <label for="porcentaje_mora" class="form-label text-xs">% mora diaria personalizado (vacío = usa config global)</label>
-                <input id="porcentaje_mora" type="number" name="porcentaje_mora_diaria"
-                       min="0" max="5" step="0.01"
-                       class="form-input w-32 text-sm"
-                       placeholder="Ej: 0.10">
-            </div>
-        </div>
-
-        <!-- Garante -->
-        <div>
-            <label for="garante_id" class="form-label">Garante (opcional)</label>
-            <select id="garante_id" name="garante_id" class="form-select">
-                <option value="">— Sin garante —</option>
-                <?php foreach ($garantes as $g): ?>
-                    <option value="<?= $g['id'] ?>"><?= e($g['nombre']) ?> — DNI <?= e($g['dni']) ?></option>
-                <?php endforeach; ?>
-            </select>
-        </div>
-
-        <!-- Observaciones -->
-        <div>
-            <label for="observaciones" class="form-label">Observaciones</label>
-            <textarea id="observaciones" name="observaciones" rows="2"
-                      class="form-input resize-none"
-                      placeholder="Notas adicionales..."></textarea>
-        </div>
-
-        <div class="flex gap-3 pt-2">
-            <button type="submit" class="btn-primary">✅ Enviar solicitud</button>
-            <a href="<?= url('vendedor/creditos') ?>" class="btn-secondary">Cancelar</a>
+        <div class="flex flex-col sm:flex-row gap-3">
+            <button type="submit" class="btn-primary sm:flex-1 justify-center py-4 text-base shadow-lg shadow-brand-500/30">
+                <i class="isax isax-send-1"></i> Enviar Solicitud a Autorización
+            </button>
+            <a href="<?= url('vendedor/creditos') ?>" class="btn-secondary sm:flex-1 justify-center py-4 bg-white hover:bg-slate-50 border-slate-200">
+                Cancelar
+            </a>
         </div>
     </form>
 </div>

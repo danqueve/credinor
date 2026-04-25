@@ -1,103 +1,160 @@
 <?php // views/admin/reportes/mora.php
 use App\Helpers\MoneyHelper;
 ?>
-<div class="space-y-5">
-    <h1 class="text-2xl font-bold">🔴 Reporte de Mora</h1>
+<div class="space-y-6 pb-10">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+            <h1 class="text-3xl font-extrabold text-slate-900 tracking-tight" style="font-family: 'Outfit', sans-serif;">Reporte de Mora</h1>
+            <p class="text-sm font-medium text-slate-500 mt-1">Análisis de atrasos y recargos pendientes o cobrados</p>
+        </div>
+    </div>
 
     <!-- Totales -->
-    <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
-        <div class="kpi-card">
-            <span class="kpi-value text-red-600"><?= MoneyHelper::formatShort($totalMora) ?></span>
-            <span class="kpi-label">Mora acumulada total</span>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="bg-red-50/50 rounded-3xl p-6 border border-red-100 shadow-sm relative overflow-hidden group hover:border-red-200 transition-colors">
+            <div class="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity">
+                <i class="isax isax-danger text-8xl text-red-600"></i>
+            </div>
+            <div class="relative z-10">
+                <span class="block text-xs font-bold uppercase tracking-wider text-red-500 mb-2">Mora Acumulada Total</span>
+                <span class="block text-4xl font-extrabold text-red-600" style="font-family: 'Outfit', sans-serif;">
+                    <?= MoneyHelper::formatShort($totalMora) ?>
+                </span>
+            </div>
         </div>
-        <div class="kpi-card">
-            <span class="kpi-value text-red-800"><?= MoneyHelper::formatShort($totalPend) ?></span>
-            <span class="kpi-label">Mora pendiente de cobro</span>
+        
+        <div class="bg-gradient-to-br from-red-600 to-red-800 rounded-3xl p-6 border border-red-500 shadow-lg relative overflow-hidden group hover:shadow-red-500/20 transition-all">
+            <div class="absolute top-0 right-0 p-6 opacity-10 group-hover:opacity-20 transition-opacity">
+                <i class="isax isax-warning-2 text-8xl text-white"></i>
+            </div>
+            <div class="relative z-10">
+                <span class="block text-xs font-bold uppercase tracking-wider text-red-200 mb-2">Mora Pendiente de Cobro</span>
+                <span class="block text-4xl font-extrabold text-white" style="font-family: 'Outfit', sans-serif;">
+                    <?= MoneyHelper::formatShort($totalPend) ?>
+                </span>
+            </div>
         </div>
-        <div class="kpi-card">
-            <span class="kpi-value text-orange-600"><?= MoneyHelper::formatShort($totalMora - $totalPend) ?></span>
-            <span class="kpi-label">Mora ya cobrada</span>
+        
+        <div class="bg-emerald-50/50 rounded-3xl p-6 border border-emerald-100 shadow-sm relative overflow-hidden group hover:border-emerald-200 transition-colors">
+            <div class="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity">
+                <i class="isax isax-tick-circle text-8xl text-emerald-600"></i>
+            </div>
+            <div class="relative z-10">
+                <span class="block text-xs font-bold uppercase tracking-wider text-emerald-600 mb-2">Mora Ya Cobrada</span>
+                <span class="block text-4xl font-extrabold text-emerald-700" style="font-family: 'Outfit', sans-serif;">
+                    <?= MoneyHelper::formatShort($totalMora - $totalPend) ?>
+                </span>
+            </div>
         </div>
     </div>
 
-    <!-- Por cobrador -->
-    <?php if (!empty($porCobrador)): ?>
-    <div class="card">
-        <h2 class="font-semibold border-b pb-2 mb-3">Por cobrador</h2>
-        <div class="table-container">
-            <table class="table text-sm">
-                <thead>
-                    <tr>
-                        <th>Cobrador</th>
-                        <th class="text-right">Créditos</th>
-                        <th class="text-right">Mora acumulada</th>
-                        <th class="text-right">Cobrada</th>
-                        <th class="text-right">Pendiente</th>
-                        <th>%</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php foreach ($porCobrador as $c): ?>
-                    <?php
-                        $pct = $c['mora_total'] > 0
-                            ? round($c['mora_cobrada'] / $c['mora_total'] * 100)
-                            : 0;
-                    ?>
-                    <tr>
-                        <td class="font-medium"><?= e($c['cobrador_nombre']) ?></td>
-                        <td class="text-right text-gray-500"><?= $c['total_creditos'] ?></td>
-                        <td class="text-right"><?= MoneyHelper::formatShort((float)$c['mora_total']) ?></td>
-                        <td class="text-right text-green-600"><?= MoneyHelper::formatShort((float)$c['mora_cobrada']) ?></td>
-                        <td class="text-right text-red-600 font-medium"><?= MoneyHelper::formatShort((float)$c['mora_pendiente']) ?></td>
-                        <td class="w-24">
-                            <div class="flex items-center gap-2">
-                                <div class="flex-1 bg-gray-200 rounded-full h-2">
-                                    <div class="bg-green-500 h-2 rounded-full" style="width:<?= $pct ?>%"></div>
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Por cobrador -->
+        <?php if (!empty($porCobrador)): ?>
+        <div class="bg-white rounded-3xl border border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)] overflow-hidden">
+            <div class="p-6 border-b border-slate-100/80">
+                <h2 class="text-base font-bold text-slate-800 flex items-center gap-2">
+                    <i class="isax isax-profile-2user text-brand-500"></i> Desglose por Cobrador
+                </h2>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm text-left">
+                    <thead class="bg-slate-50/80 border-b border-slate-100 text-slate-500 uppercase text-[10px] font-bold tracking-wider">
+                        <tr>
+                            <th class="px-6 py-4">Cobrador</th>
+                            <th class="px-6 py-4 text-center" title="Cantidad de créditos con mora">Cant.</th>
+                            <th class="px-6 py-4 text-right">Pendiente</th>
+                            <th class="px-6 py-4">Recuperación</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100">
+                        <?php foreach ($porCobrador as $c): ?>
+                        <?php
+                            $pct = $c['mora_total'] > 0
+                                ? round($c['mora_cobrada'] / $c['mora_total'] * 100)
+                                : 0;
+                        ?>
+                        <tr class="hover:bg-slate-50/50 transition-colors">
+                            <td class="px-6 py-4 font-bold text-slate-800">
+                                <div class="flex items-center gap-2">
+                                    <div class="w-8 h-8 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center font-bold text-xs shrink-0">
+                                        <?= strtoupper(substr($c['cobrador_nombre'], 0, 1)) ?>
+                                    </div>
+                                    <?= e($c['cobrador_nombre']) ?>
                                 </div>
-                                <span class="text-xs text-gray-500"><?= $pct ?>%</span>
-                            </div>
-                        </td>
-                    </tr>
-                    <?php endforeach; ?>
-                </tbody>
-            </table>
+                            </td>
+                            <td class="px-6 py-4 text-center font-medium text-slate-500">
+                                <?= $c['total_creditos'] ?>
+                            </td>
+                            <td class="px-6 py-4 text-right font-bold text-red-600">
+                                <?= MoneyHelper::formatShort((float)$c['mora_pendiente']) ?>
+                            </td>
+                            <td class="px-6 py-4 w-32">
+                                <div class="flex items-center gap-2">
+                                    <div class="flex-1 bg-slate-100 rounded-full h-1.5 shadow-inner overflow-hidden">
+                                        <div class="bg-gradient-to-r from-emerald-400 to-emerald-500 h-full rounded-full transition-all" style="width:<?= $pct ?>%"></div>
+                                    </div>
+                                    <span class="text-[10px] font-bold <?= $pct > 50 ? 'text-emerald-600' : 'text-slate-400' ?>"><?= $pct ?>%</span>
+                                </div>
+                            </td>
+                        </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
         </div>
-    </div>
-    <?php endif; ?>
+        <?php endif; ?>
 
-    <!-- Top deudores -->
-    <div class="card">
-        <h2 class="font-semibold border-b pb-2 mb-3">Top 50 — Mayor mora pendiente</h2>
-        <div class="table-container">
-            <table class="table text-sm">
-                <thead>
-                    <tr>
-                        <th>#</th>
-                        <th>Cliente</th>
-                        <th>Cobrador</th>
-                        <th class="text-right">Mora acum.</th>
-                        <th class="text-right">Mora pend.</th>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php foreach ($topDeudores as $i => $d): ?>
-                    <tr>
-                        <td class="text-gray-400"><?= $i + 1 ?></td>
-                        <td>
-                            <p class="font-medium"><?= e($d['nombre']) ?></p>
-                            <p class="text-xs text-gray-400">DNI <?= e($d['dni']) ?></p>
-                        </td>
-                        <td class="text-gray-500 text-xs"><?= e($d['cobrador_nombre'] ?? '—') ?></td>
-                        <td class="text-right text-red-500"><?= MoneyHelper::formatShort((float)$d['mora_acumulada']) ?></td>
-                        <td class="text-right font-bold text-red-700"><?= MoneyHelper::formatShort((float)$d['mora_pendiente']) ?></td>
-                        <td>
-                            <a href="<?= url('creditos/' . $d['credito_id']) ?>" class="btn-secondary text-xs">Ver</a>
-                        </td>
-                    </tr>
-                    <?php endforeach; ?>
-                </tbody>
-            </table>
+        <!-- Top deudores -->
+        <div class="bg-white rounded-3xl border border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)] overflow-hidden">
+            <div class="p-6 border-b border-slate-100/80">
+                <h2 class="text-base font-bold text-slate-800 flex items-center gap-2">
+                    <i class="isax isax-ranking text-brand-500"></i> Top 50 — Mayor mora pendiente
+                </h2>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm text-left">
+                    <thead class="bg-slate-50/80 border-b border-slate-100 text-slate-500 uppercase text-[10px] font-bold tracking-wider">
+                        <tr>
+                            <th class="px-4 py-4 text-center">#</th>
+                            <th class="px-6 py-4">Cliente</th>
+                            <th class="px-6 py-4 text-right">Pendiente</th>
+                            <th class="px-6 py-4 text-right">Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100">
+                        <?php foreach ($topDeudores as $i => $d): ?>
+                        <tr class="hover:bg-slate-50/50 transition-colors">
+                            <td class="px-4 py-4 text-center">
+                                <span class="text-xs font-bold text-slate-400"><?= $i + 1 ?></span>
+                            </td>
+                            <td class="px-6 py-4">
+                                <span class="font-bold text-slate-800 block"><?= e($d['nombre']) ?></span>
+                                <span class="text-[10px] font-medium text-slate-500 uppercase flex items-center gap-1 mt-0.5">
+                                    <i class="isax isax-user"></i> <?= e($d['cobrador_nombre'] ?? '—') ?>
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 text-right font-bold text-red-600">
+                                <?= MoneyHelper::formatShort((float)$d['mora_pendiente']) ?>
+                                <span class="block text-[10px] font-medium text-slate-400 font-normal mt-0.5">Acumulada: <?= MoneyHelper::formatShort((float)$d['mora_acumulada']) ?></span>
+                            </td>
+                            <td class="px-6 py-4 text-right">
+                                <a href="<?= url('creditos/' . $d['credito_id']) ?>"
+                                   class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-slate-50 text-slate-500 hover:bg-brand-50 hover:text-brand-600 transition-colors tooltip" title="Ver Crédito">
+                                    <i class="isax isax-eye"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        <?php endforeach; ?>
+                        
+                        <?php if (empty($topDeudores)): ?>
+                            <tr>
+                                <td colspan="4" class="px-6 py-8 text-center text-slate-500 font-medium">No hay créditos con mora registrada actualmente.</td>
+                            </tr>
+                        <?php endif; ?>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 </div>

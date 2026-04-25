@@ -13,22 +13,19 @@ $navAdmin = [
     ['href' => '/admin/sucursales',     'icon' => 'isax-building',       'label' => 'Sucursales'],
     ['href' => '/admin/reportes',       'icon' => 'isax-chart-21',       'label' => 'Reportes'],
 ];
-$navVendedor = [
-    ['href' => '/dashboard',            'icon' => 'isax-home-2',         'label' => 'Dashboard'],
-    ['href' => '/vendedor/clientes',    'icon' => 'isax-profile-2user',  'label' => 'Clientes'],
-    ['href' => '/vendedor/creditos',    'icon' => 'isax-document-text',  'label' => 'Mis créditos'],
-];
-$navCobrador = [
-    ['href' => '/dashboard',            'icon' => 'isax-home-2',         'label' => 'Inicio'],
-    ['href' => '/cobrador/agenda',      'icon' => 'isax-calendar-1',     'label' => 'Agenda'],
-    ['href' => '/cobrador/caja',        'icon' => 'isax-card-tick',      'label' => 'Cerrar caja'],
-    ['href' => '/cobrador/historial',   'icon' => 'isax-clock',          'label' => 'Historial'],
+$navStaff = [
+    ['href' => '/dashboard',          'icon' => 'isax-home-2',        'label' => 'Inicio'],
+    ['href' => '/cobrador/agenda',    'icon' => 'isax-calendar-1',    'label' => 'Agenda'],
+    ['href' => '/vendedor/clientes',  'icon' => 'isax-profile-2user', 'label' => 'Clientes'],
+    ['href' => '/vendedor/creditos',  'icon' => 'isax-document-text', 'label' => 'Créditos'],
+    ['href' => '/cobrador/caja',      'icon' => 'isax-card-tick',     'label' => 'Cerrar caja'],
+    ['href' => '/cobrador/rendiciones','icon'=> 'isax-wallet-money',  'label' => 'Rendiciones'],
+    ['href' => '/cobrador/historial', 'icon' => 'isax-clock',         'label' => 'Historial'],
 ];
 
 $nav = match($rol) {
     'admin'    => $navAdmin,
-    'vendedor' => $navVendedor,
-    'cobrador' => $navCobrador,
+    'cobrador', 'vendedor' => $navStaff,
     default    => [],
 };
 

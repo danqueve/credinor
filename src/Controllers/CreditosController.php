@@ -30,6 +30,7 @@ class CreditosController extends Controller
     // GET /vendedor/creditos
     public function misCreditos(): void
     {
+        $this->requireStaff();
         $sucursalId = Auth::sucursalId();
         $estado     = Request::get('estado', '');
         $creditos   = $this->model->getBySucursal($sucursalId, $estado);
@@ -39,6 +40,7 @@ class CreditosController extends Controller
     // GET /vendedor/creditos/nuevo?cliente_id=X
     public function nuevo(): void
     {
+        $this->requireStaff();
         $clienteId = (int) Request::get('cliente_id', 0);
         $cliente   = $clienteId ? (new Cliente())->find($clienteId) : null;
         $clientes  = (new Cliente())->searchBySucursal(Auth::sucursalId(), '');
@@ -51,6 +53,7 @@ class CreditosController extends Controller
     public function store(): void
     {
         $this->validateCsrf();
+        $this->requireStaff();
 
         try {
             $id = $this->service->crearSolicitud([
@@ -63,7 +66,7 @@ class CreditosController extends Controller
                 'frecuencia'             => Request::post('frecuencia'),
                 'fecha_inicio'           => Request::post('fecha_inicio'),
                 'fecha_primera_cuota'    => Request::post('fecha_primera_cuota'),
-                'aplica_mora'            => Request::post('aplica_mora', 1),
+                'aplica_mora'            => Request::post('aplica_mora', 0),
                 'porcentaje_mora_diaria' => Request::post('porcentaje_mora_diaria'),
                 'observaciones'          => Request::post('observaciones'),
             ]);
@@ -81,13 +84,13 @@ class CreditosController extends Controller
     // GET /creditos/{id}
     public function show(array $params): void
     {
+        $this->requireRole(['admin', 'cobrador', 'vendedor']);
         $credito  = $this->model->getConDetalles((int) $params['id']);
         if (!$credito) Response::abort(404, 'Crédito no encontrado.');
 
         $cuotas   = (new Cuota())->getByCreditoOrdenadas((int) $params['id']);
         $log      = $this->model->getLog((int) $params['id']);
 
-        $layout = Auth::isAdmin() ? 'admin' : (Auth::isVendedor() ? 'vendedor' : 'cobrador');
         $this->view('shared/credito_detalle', compact('credito', 'cuotas', 'log'));
     }
 

@@ -36,4 +36,9 @@ abstract class Controller
             Response::redirect('/dashboard');
         }
     }
+
+    protected function requireStaff(): void
+    {
+        $this->requireRole(Auth::STAFF);
+    }
 }

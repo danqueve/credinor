@@ -62,6 +62,13 @@ class Auth
         return self::rol() === 'cobrador';
     }
 
+    public const STAFF = ['cobrador', 'vendedor'];
+
+    public static function isStaff(): bool
+    {
+        return in_array(self::rol(), self::STAFF, true);
+    }
+
     public static function can(array $roles): bool
     {
         return in_array(self::rol(), $roles, true);

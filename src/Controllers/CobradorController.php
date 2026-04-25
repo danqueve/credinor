@@ -17,7 +17,7 @@ class CobradorController extends Controller
     // GET /cobrador/agenda
     public function agenda(): void
     {
-        $this->requireRole('cobrador');
+        $this->requireStaff();
         $cobradorId = Auth::id();
         $cuota      = new Cuota();
 
@@ -36,7 +36,7 @@ class CobradorController extends Controller
     // GET /cobrador/historial
     public function historial(): void
     {
-        $this->requireRole('cobrador');
+        $this->requireStaff();
         $pagos = (new Pago())->getDelCobrador(Auth::id(), 60);
         $this->view('cobrador/historial', compact('pagos'));
     }
@@ -44,7 +44,7 @@ class CobradorController extends Controller
     // GET /cobrador/caja
     public function caja(): void
     {
-        $this->requireRole('cobrador');
+        $this->requireStaff();
         $cobradorId = Auth::id();
         $pagos      = (new Pago())->getDelDia($cobradorId);
         $total      = array_sum(array_column($pagos, 'monto'));
@@ -59,7 +59,7 @@ class CobradorController extends Controller
     public function cerrarCaja(): void
     {
         $this->validateCsrf();
-        $this->requireRole('cobrador');
+        $this->requireStaff();
 
         try {
             $service = new RendicionService();
@@ -70,5 +70,20 @@ class CobradorController extends Controller
             Session::flash('error', $e->getMessage());
             Response::redirect('/cobrador/caja');
         }
+    }
+
+    public function rendiciones(): void
+    {
+        $this->requireStaff();
+        $rendiciones = (new Rendicion())->getDelCobrador(Auth::id());
+        $this->view('cobrador/rendiciones', compact('rendiciones'));
+    }
+
+    public function rendicionDetalle(array $params): void
+    {
+        $this->requireStaff();
+        $rendicion = (new Rendicion())->getDelCobradorConPagos((int)$params['id'], Auth::id());
+        if (!$rendicion) Response::abort(404, 'Rendición no encontrada.');
+        $this->view('cobrador/rendicion_detalle', compact('rendicion'));
     }
 }

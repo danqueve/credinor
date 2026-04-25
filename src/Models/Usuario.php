@@ -29,12 +29,12 @@ class Usuario extends Model
     {
         if ($sucursalId) {
             return $this->query(
-                "SELECT * FROM usuarios WHERE rol = 'cobrador' AND sucursal_id = ? AND activo = 1 ORDER BY nombre",
+                "SELECT * FROM usuarios WHERE rol IN ('cobrador', 'vendedor') AND sucursal_id = ? AND activo = 1 ORDER BY nombre",
                 [$sucursalId]
             )->fetchAll();
         }
         return $this->query(
-            "SELECT * FROM usuarios WHERE rol = 'cobrador' AND activo = 1 ORDER BY nombre"
+            "SELECT * FROM usuarios WHERE rol IN ('cobrador', 'vendedor') AND activo = 1 ORDER BY nombre"
         )->fetchAll();
     }
     public function getConSucursal(): array

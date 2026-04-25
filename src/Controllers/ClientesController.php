@@ -21,6 +21,7 @@ class ClientesController extends Controller
     // GET /vendedor/clientes  |  GET /admin/clientes
     public function index(): void
     {
+        $this->requireRole(['admin', 'cobrador', 'vendedor']);
         $sucursalId = Auth::isAdmin() ? null : Auth::sucursalId();
         $q = trim(Request::get('q', ''));
 
@@ -37,6 +38,7 @@ class ClientesController extends Controller
     // GET /vendedor/clientes/nuevo
     public function crear(): void
     {
+        $this->requireStaff();
         $this->view('vendedor/cliente_form', ['cliente' => null, 'accion' => 'crear']);
     }
 
@@ -44,6 +46,7 @@ class ClientesController extends Controller
     public function store(): void
     {
         $this->validateCsrf();
+        $this->requireStaff();
 
         $dni    = trim(Request::post('dni', ''));
         $nombre = trim(Request::post('nombre', ''));
@@ -80,6 +83,7 @@ class ClientesController extends Controller
     // GET /vendedor/clientes/{id}
     public function show(array $params): void
     {
+        $this->requireRole(['admin', 'cobrador', 'vendedor']);
         $cliente = $this->model->findOrFail((int) $params['id']);
         // Créditos del cliente
         $creditos = (new \App\Models\Credito())->getByCliente((int) $params['id']);
@@ -90,6 +94,7 @@ class ClientesController extends Controller
     // GET /vendedor/clientes/{id}/editar
     public function editar(array $params): void
     {
+        $this->requireStaff();
         $cliente = $this->model->findOrFail((int) $params['id']);
         $this->view('vendedor/cliente_form', ['cliente' => $cliente, 'accion' => 'editar']);
     }
@@ -98,6 +103,7 @@ class ClientesController extends Controller
     public function update(array $params): void
     {
         $this->validateCsrf();
+        $this->requireStaff();
 
         $id     = (int) $params['id'];
         $cliente= $this->model->findOrFail($id);
@@ -121,6 +127,7 @@ class ClientesController extends Controller
     // GET /api/clientes/buscar?q=... (JSON para autocompletar en formulario de crédito)
     public function buscarJson(): void
     {
+        $this->requireStaff();
         $q = trim(Request::get('q', ''));
         $sucursalId = Auth::sucursalId() ?? 0;
 
