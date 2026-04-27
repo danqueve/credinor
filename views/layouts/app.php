@@ -13,6 +13,7 @@
     <link rel="stylesheet" href="<?= asset('css/app.css') ?>">
     <meta name="csrf-token" content="<?= \App\Core\Session::csrfToken() ?>">
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </head>
 <body class="h-full bg-slate-100/60">
 
@@ -40,7 +41,7 @@
         <header class="topbar">
             <!-- Mobile hamburger -->
             <button @click="sidebarOpen = !sidebarOpen"
-                    class="lg:hidden mr-4 w-9 h-9 flex items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 transition-colors"
+                    class="lg:hidden mr-4 w-11 h-11 flex items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 transition-colors"
                     aria-label="Abrir menú">
                 <i class="isax isax-menu-1 text-xl"></i>
             </button>
@@ -66,7 +67,7 @@
                 <div class="h-5 w-px bg-slate-200 mx-1 hidden sm:block"></div>
 
                 <a href="<?= url('logout') ?>"
-                   class="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all"
+                   class="w-11 h-11 flex items-center justify-center rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all"
                    title="Cerrar sesión">
                     <i class="isax isax-logout text-lg"></i>
                 </a>

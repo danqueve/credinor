@@ -219,6 +219,50 @@ class PagosController extends Controller
         }
     }
 
+    // GET /admin/pagos
+    public function adminListado(): void
+    {
+        $this->requireRole('admin');
+        $db = \App\Core\Database::getInstance();
+
+        $pagos = $db->query(
+            "SELECT p.*, cu.numero_cuota, cl.nombre AS cliente_nombre,
+                    cr.id AS credito_id, u_cob.nombre AS cobrador_nombre,
+                    u_anul.nombre AS anulado_por_nombre
+             FROM pagos p
+             JOIN cuotas cu ON p.cuota_id = cu.id
+             JOIN creditos cr ON cu.credito_id = cr.id
+             JOIN clientes cl ON cr.cliente_id = cl.id
+             JOIN usuarios u_cob ON p.cobrador_id = u_cob.id
+             LEFT JOIN usuarios u_anul ON p.anulado_por = u_anul.id
+             ORDER BY p.created_at DESC
+             LIMIT 200"
+        )->fetchAll();
+
+        $this->view('admin/pagos', compact('pagos'));
+    }
+
+    // POST /admin/pagos/{id}/anular
+    public function anular(array $params): void
+    {
+        $this->validateCsrf();
+        $this->requireRole('admin');
+
+        $motivo = trim(Request::post('motivo', ''));
+        if ($motivo === '') {
+            Session::flash('error', 'El motivo de anulación es obligatorio.');
+            Response::redirect('/admin/pagos');
+        }
+
+        try {
+            $this->service->anular((int)$params['id'], Auth::id(), $motivo);
+            Session::flash('success', 'Pago anulado correctamente.');
+        } catch (\DomainException $e) {
+            Session::flash('error', $e->getMessage());
+        }
+        Response::redirect('/admin/pagos');
+    }
+
     // GET /cobrador/pago/{pago_id}/recibo
     public function recibo(array $params): void
     {

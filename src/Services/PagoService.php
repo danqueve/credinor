@@ -120,35 +120,65 @@ class PagoService
     }
 
     /**
-     * Anular un pago y revertir el estado de la cuota.
+     * Anular un pago, revertir el estado de la cuota y registrar auditoría.
+     * No se puede anular si la rendición asociada ya está confirmada.
      */
-    public function anular(int $pagoId): void
+    public function anular(int $pagoId, int $usuarioId, string $motivo): void
     {
-        $pago = $this->db->prepare(
-            "SELECT * FROM pagos WHERE id = ? AND estado != 'anulado'"
+        $stmt = $this->db->prepare(
+            "SELECT p.*, r.estado AS rendicion_estado,
+                    cu.credito_id,
+                    cr.estado AS credito_estado
+             FROM pagos p
+             LEFT JOIN rendiciones r ON p.rendicion_id = r.id
+             JOIN cuotas cu ON p.cuota_id = cu.id
+             JOIN creditos cr ON cu.credito_id = cr.id
+             WHERE p.id = ? AND p.estado != 'anulado'"
         );
-        $pago->execute([$pagoId]);
-        $p = $pago->fetch();
+        $stmt->execute([$pagoId]);
+        $p = $stmt->fetch();
         if (!$p) throw new \DomainException('Pago no encontrado o ya anulado.');
+
+        if ($p['rendicion_estado'] === 'confirmada') {
+            throw new \DomainException('No se puede anular un pago ya rendido y confirmado.');
+        }
 
         $this->db->beginTransaction();
         try {
-            // Marcar pago como anulado
             $this->db->prepare("
-                UPDATE pagos SET estado = 'anulado', updated_at = NOW() WHERE id = ?
-            ")->execute([$pagoId]);
+                UPDATE pagos
+                SET estado = 'anulado',
+                    anulado_at = NOW(),
+                    anulado_por = ?,
+                    motivo_anulacion = ?,
+                    updated_at = NOW()
+                WHERE id = ?
+            ")->execute([$usuarioId, $motivo, $pagoId]);
 
             // Revertir mora_pagada
             if ((float)$p['monto_a_mora'] > 0) {
                 $this->db->prepare("
                     UPDATE creditos
                     SET mora_pagada = GREATEST(0, mora_pagada - ?), updated_at = NOW()
-                    WHERE id = (SELECT credito_id FROM cuotas WHERE id = ?)
-                ")->execute([$p['monto_a_mora'], $p['cuota_id']]);
+                    WHERE id = ?
+                ")->execute([$p['monto_a_mora'], $p['credito_id']]);
             }
 
             // Recalcular estado de la cuota
             $this->recalcularEstadoCuota((int)$p['cuota_id']);
+
+            // Reabrir crédito si estaba finalizado
+            if ($p['credito_estado'] === 'finalizado') {
+                $this->db->prepare("
+                    UPDATE creditos SET estado = 'activo', updated_at = NOW() WHERE id = ?
+                ")->execute([$p['credito_id']]);
+            }
+
+            // Log de auditoría
+            $this->db->prepare("
+                INSERT INTO creditos_log (credito_id, usuario_id, estado_desde, estado_hasta, nota)
+                VALUES (?, ?, NULL, NULL, ?)
+            ")->execute([$p['credito_id'], $usuarioId, "Pago #{$pagoId} anulado: {$motivo}"]);
 
             $this->db->commit();
         } catch (\Throwable $e) {

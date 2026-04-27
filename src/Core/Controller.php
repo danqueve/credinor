@@ -41,4 +41,15 @@ abstract class Controller
     {
         $this->requireRole(Auth::STAFF);
     }
+
+    /**
+     * Store validation errors + old input in session, then redirect back.
+     */
+    protected function validationFailed(\App\Core\ValidationException $e, string $backUrl): never
+    {
+        $_SESSION['_errors'] = $e->getErrors();
+        $_SESSION['_old']    = $_POST;
+        Session::flash('error', 'Corrige los errores marcados en el formulario.');
+        Response::redirect($backUrl);
+    }
 }

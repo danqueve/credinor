@@ -7,6 +7,7 @@ $navAdmin = [
     ['href' => '/dashboard',          'icon' => 'isax-home-2',         'label' => 'Dashboard'],
     ['href' => '/admin/creditos',     'icon' => 'isax-document-text',  'label' => 'Créditos'],
     ['href' => '/admin/clientes',     'icon' => 'isax-profile-2user',  'label' => 'Clientes'],
+    ['href' => '/admin/pagos',        'icon' => 'isax-receipt-item',   'label' => 'Pagos'],
     ['href' => '/admin/rendiciones',  'icon' => 'isax-wallet-money',   'label' => 'Rendiciones'],
     ['href' => '/admin/usuarios',     'icon' => 'isax-user',           'label' => 'Usuarios'],
     ['href' => '/admin/sucursales',   'icon' => 'isax-building',       'label' => 'Sucursales'],

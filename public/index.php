@@ -40,6 +40,23 @@ function csrf_field(): string
     return '<input type="hidden" name="_csrf" value="' . $token . '">';
 }
 
+function old(string $key, string $default = ''): string
+{
+    $value = $_SESSION['_old'][$key] ?? $default;
+    unset($_SESSION['_old'][$key]);
+    return htmlspecialchars((string) $value, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+}
+
+function form_error(string $key): string
+{
+    return $_SESSION['_errors'][$key] ?? '';
+}
+
+function has_error(string $key): bool
+{
+    return !empty($_SESSION['_errors'][$key]);
+}
+
 // Timezone
 date_default_timezone_set('America/Argentina/Buenos_Aires');
 
@@ -82,12 +99,14 @@ $router->post('/vendedor/creditos',      [\App\Controllers\CreditosController::c
 $router->get('/creditos/{id}', [\App\Controllers\CreditosController::class, 'show'], $auth);
 
 // ——— CRÉDITOS ADMIN —————————————————————————————————————
-$router->get('/admin/creditos',                      [\App\Controllers\CreditosController::class, 'adminIndex'],   $auth);
-$router->get('/admin/creditos/{id}/autorizar',       [\App\Controllers\CreditosController::class, 'formAutorizar'], $auth);
-$router->post('/admin/creditos/{id}/autorizar',      [\App\Controllers\CreditosController::class, 'autorizar'],    $auth);
-$router->post('/admin/creditos/{id}/rechazar',       [\App\Controllers\CreditosController::class, 'rechazar'],     $auth);
-$router->get('/admin/creditos/{credito_id}/pago/{cuota_id}',        [\App\Controllers\PagosController::class, 'adminForm'],       $auth);
-$router->post('/admin/creditos/{credito_id}/pago/{cuota_id}',       [\App\Controllers\PagosController::class, 'adminStore'],      $auth);
+$router->get('/admin/creditos',                      [\App\Controllers\CreditosController::class, 'adminIndex'], $auth);
+$router->get('/admin/creditos/{id}/editar',          [\App\Controllers\CreditosController::class, 'edit'],        $auth);
+$router->post('/admin/creditos/{id}/editar',         [\App\Controllers\CreditosController::class, 'update'],      $auth);
+$router->post('/admin/creditos/{id}/cancelar',       [\App\Controllers\CreditosController::class, 'cancelar'],   $auth);
+$router->get('/admin/creditos/{credito_id}/pago/{cuota_id}',        [\App\Controllers\PagosController::class, 'adminForm'],        $auth);
+$router->post('/admin/creditos/{credito_id}/pago/{cuota_id}',       [\App\Controllers\PagosController::class, 'adminStore'],       $auth);
+$router->post('/admin/pagos/{id}/anular',            [\App\Controllers\PagosController::class, 'anular'],        $auth);
+$router->get('/admin/pagos',                         [\App\Controllers\PagosController::class, 'adminListado'],  $auth);
 $router->get('/admin/api/creditos/{credito_id}/proxima-cuota',      [\App\Controllers\PagosController::class, 'proximaCuotaJson'], $auth);
 $router->post('/admin/api/creditos/{credito_id}/pago/{cuota_id}',   [\App\Controllers\PagosController::class, 'adminStoreJson'],   $auth);
 

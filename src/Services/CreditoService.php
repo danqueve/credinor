@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Core\Auth;
 use App\Core\Database;
+use App\Core\Validator;
 use App\Helpers\DateHelper;
 use App\Helpers\MoneyHelper;
 use App\Models\Credito;
@@ -20,24 +21,32 @@ class CreditoService
     }
 
     // -------------------------------------------------------
-    // CREAR SOLICITUD (vendedor)
+    // CREAR CRÉDITO (staff o admin)
     // -------------------------------------------------------
-    public function crearSolicitud(array $data): int
+    public function crear(array $data): int
     {
         // Validaciones de negocio
+        Validator::throwIfInvalid($data, [
+            'cliente_id'      => ['required'],
+            'monto_prestado'  => ['required', 'numeric', ['gt', 0], ['lte', 10000000]],
+            'monto_a_devolver'=> ['required', 'numeric', ['gte_field', 'monto_prestado']],
+            'cantidad_cuotas' => ['required', 'numeric', ['min', 1], ['max', 60]],
+            'frecuencia'      => ['required', ['in', ['diaria','semanal','quincenal','mensual']]],
+            'fecha_inicio'    => ['required', 'date', 'date_not_past'],
+        ]);
+
+        // Cliente sin crédito activo
+        $stmtActivo = $this->db->prepare(
+            "SELECT COUNT(*) FROM creditos WHERE cliente_id = ? AND estado = 'activo'"
+        );
+        $stmtActivo->execute([(int)$data['cliente_id']]);
+        if ((int)$stmtActivo->fetchColumn() > 0) {
+            throw new \DomainException('Este cliente ya tiene un crédito activo. Finalícelo o cancélelo antes de crear uno nuevo.');
+        }
+
         $montoPrestado  = (float) $data['monto_prestado'];
         $montoDevolver  = (float) $data['monto_a_devolver'];
         $cantCuotas     = (int)   $data['cantidad_cuotas'];
-
-        if ($montoDevolver < $montoPrestado) {
-            throw new \DomainException('El monto a devolver no puede ser menor al prestado.');
-        }
-        if ($cantCuotas < 1) {
-            throw new \DomainException('Debe haber al menos 1 cuota.');
-        }
-        if ($montoPrestado <= 0) {
-            throw new \DomainException('El monto prestado debe ser mayor a 0.');
-        }
 
         $userId = Auth::id();
 
@@ -88,6 +97,118 @@ class CreditoService
         }
 
         return $creditoId;
+    }
+
+    // -------------------------------------------------------
+    // CANCELAR (admin) — solo si sin pagos
+    // -------------------------------------------------------
+    public function cancelar(int $creditoId, int $usuarioId, string $motivo): void
+    {
+        $credito = (new Credito())->findOrFail($creditoId);
+
+        if (!in_array($credito['estado'], ['activo', 'pendiente_autorizacion'], true)) {
+            throw new \DomainException('Solo se pueden cancelar créditos activos.');
+        }
+
+        $stmt = $this->db->prepare(
+            "SELECT COUNT(*) FROM pagos p
+             JOIN cuotas cu ON p.cuota_id = cu.id
+             WHERE cu.credito_id = ? AND p.estado != 'anulado'"
+        );
+        $stmt->execute([$creditoId]);
+        $tienePagos = (int) $stmt->fetchColumn();
+
+        if ($tienePagos > 0) {
+            throw new \DomainException('No se puede cancelar un crédito con pagos registrados; primero anule los pagos.');
+        }
+
+        $this->db->beginTransaction();
+        try {
+            $this->db->prepare(
+                "UPDATE creditos SET estado = 'cancelado', updated_at = NOW() WHERE id = ?"
+            )->execute([$creditoId]);
+
+            $this->db->prepare(
+                "UPDATE cuotas SET estado = 'cancelada', updated_at = NOW()
+                 WHERE credito_id = ? AND estado IN ('pendiente','parcial','vencida')"
+            )->execute([$creditoId]);
+
+            $this->registrarLog($creditoId, $credito['estado'], 'cancelado', "Cancelado por admin: {$motivo}", $usuarioId);
+
+            $this->db->commit();
+        } catch (\Throwable $e) {
+            $this->db->rollBack();
+            throw $e;
+        }
+    }
+
+    // -------------------------------------------------------
+    // ACTUALIZAR (admin) — reasigna cobrador / regenera cuotas
+    // -------------------------------------------------------
+    public function actualizar(int $creditoId, array $data, int $usuarioId): void
+    {
+        $credito = (new Credito())->getConDetalles($creditoId);
+        if (!$credito) throw new \DomainException('Crédito no encontrado.');
+
+        if (!in_array($credito['estado'], ['activo', 'pendiente_autorizacion'], true)) {
+            throw new \DomainException('Solo se pueden editar créditos activos.');
+        }
+
+        $stmt = $this->db->prepare(
+            "SELECT COUNT(*) FROM pagos p
+             JOIN cuotas cu ON p.cuota_id = cu.id
+             WHERE cu.credito_id = ? AND p.estado != 'anulado'"
+        );
+        $stmt->execute([$creditoId]);
+        if ((int) $stmt->fetchColumn() > 0) {
+            throw new \DomainException('No se puede editar un crédito con pagos registrados.');
+        }
+
+        $montoDevolver = (float) ($data['monto_a_devolver'] ?? $credito['monto_a_devolver']);
+        $cantCuotas    = (int)   ($data['cantidad_cuotas']  ?? $credito['cantidad_cuotas']);
+        $frecuencia    = $data['frecuencia'] ?? $credito['frecuencia'];
+        $cobradorId    = (int) ($data['cobrador_id'] ?? $credito['cobrador_id']);
+
+        if ($montoDevolver < (float)$credito['monto_prestado']) {
+            throw new \DomainException('El monto a devolver no puede ser menor al prestado.');
+        }
+        if ($cantCuotas < 1 || $cantCuotas > 60) {
+            throw new \DomainException('La cantidad de cuotas debe estar entre 1 y 60.');
+        }
+
+        $this->db->beginTransaction();
+        try {
+            $this->db->prepare(
+                "UPDATE creditos
+                 SET cobrador_id = ?, frecuencia = ?, cantidad_cuotas = ?,
+                     monto_a_devolver = ?, fecha_primera_cuota = ?,
+                     observaciones = ?, updated_at = NOW()
+                 WHERE id = ?"
+            )->execute([
+                $cobradorId,
+                $frecuencia,
+                $cantCuotas,
+                $montoDevolver,
+                $data['fecha_primera_cuota'] ?? $credito['fecha_primera_cuota'],
+                $data['observaciones'] ?? $credito['observaciones'],
+                $creditoId,
+            ]);
+
+            // Regenerar cuotas (borra pendientes/vencidas, no pagadas/parciales)
+            $this->db->prepare(
+                "DELETE FROM cuotas WHERE credito_id = ? AND estado IN ('pendiente','vencida','cancelada')"
+            )->execute([$creditoId]);
+
+            $creditoActualizado = (new Credito())->find($creditoId);
+            $this->generarCuotas($creditoActualizado);
+
+            $this->registrarLog($creditoId, $credito['estado'], $credito['estado'], "Crédito editado por admin.", $usuarioId);
+
+            $this->db->commit();
+        } catch (\Throwable $e) {
+            $this->db->rollBack();
+            throw $e;
+        }
     }
 
     // -------------------------------------------------------
@@ -210,12 +331,13 @@ class CreditoService
         int $creditoId,
         ?string $desde,
         string $hasta,
-        string $nota
+        string $nota,
+        ?int $usuarioId = null
     ): void {
         $stmt = $this->db->prepare("
             INSERT INTO creditos_log (credito_id, usuario_id, estado_desde, estado_hasta, nota)
             VALUES (?, ?, ?, ?, ?)
         ");
-        $stmt->execute([$creditoId, Auth::id() ?? 1, $desde, $hasta, $nota]);
+        $stmt->execute([$creditoId, $usuarioId ?? Auth::id() ?? 1, $desde, $hasta, $nota]);
     }
 }

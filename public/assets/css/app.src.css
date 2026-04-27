@@ -454,4 +454,66 @@
     .alert-error   { @apply bg-red-50 text-red-800 border-red-200/60; }
     .alert-warning { @apply bg-amber-50 text-amber-800 border-amber-200/60; }
     .alert-info    { @apply bg-blue-50 text-blue-800 border-blue-200/60; }
+
+    /* ==============================
+       BUTTON SIZE VARIANTS
+    ============================== */
+    .btn-sm { @apply py-1.5 px-3 text-xs; }
+    .btn-lg { @apply py-3.5 px-6 text-base; }
+
+    /* ==============================
+       CARD-LG — dashboard cards
+    ============================== */
+    .card-lg {
+        @apply bg-white rounded-3xl p-6 md:p-8 border border-slate-100;
+        box-shadow: 0 8px 30px rgb(0 0 0 / 0.04);
+    }
+
+    /* ==============================
+       PAGE HEADER
+    ============================== */
+    .page-header {
+        @apply flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6;
+    }
+    .page-title {
+        @apply text-3xl font-extrabold text-slate-900 tracking-tight;
+        font-family: 'Outfit', sans-serif;
+    }
+    .page-subtitle {
+        @apply text-sm font-medium text-slate-500 mt-1;
+    }
+
+    /* ==============================
+       EMPTY STATE
+    ============================== */
+    .empty-state {
+        @apply bg-white rounded-3xl p-10 border border-slate-100 text-center;
+        box-shadow: 0 8px 30px rgb(0 0 0 / 0.04);
+    }
+    .empty-state-icon {
+        @apply w-20 h-20 rounded-full bg-slate-50 text-slate-300
+               flex items-center justify-center mx-auto mb-5 text-4xl;
+    }
+
+    /* ==============================
+       PAYMENT METHOD BADGES
+    ============================== */
+    .badge-efectivo {
+        @apply inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider
+               px-2 py-0.5 rounded
+               text-emerald-600 bg-emerald-50 border border-emerald-100;
+    }
+    .badge-transferencia {
+        @apply inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider
+               px-2 py-0.5 rounded
+               text-purple-600 bg-purple-50 border border-purple-100;
+    }
+    .badge-anulado {
+        @apply inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider
+               px-2 py-0.5 rounded
+               text-slate-400 bg-slate-100 border border-slate-200;
+    }
+    .badge-cancelado {
+        @apply bg-slate-100 text-slate-500 border border-slate-200/60;
+    }
 }

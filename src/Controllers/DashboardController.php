@@ -10,6 +10,7 @@ use App\Models\Credito;
 use App\Models\Cuota;
 use App\Models\Rendicion;
 use App\Models\Usuario;
+use App\Services\AnalyticsService;
 
 class DashboardController extends Controller
 {
@@ -73,10 +74,19 @@ class DashboardController extends Controller
 
         $rendicionesPendientes = (new Rendicion())->getPendientesAdmin();
 
-        // Nombre de la sucursal del admin (si tiene asignada)
+        $analytics = new AnalyticsService();
+        $chartCobranza   = $analytics->cobranzaUltimos30Dias();
+        $chartMora       = $analytics->moraPorSucursal();
+        $chartRendiciones= $analytics->embudoRendiciones();
+        $top10Deudores   = $analytics->top10Deudores();
+        $tendencia       = $analytics->tendenciaMensual();
+
         $sucursalNombre = 'Global';
 
-        $this->view('admin/dashboard', compact('kpis', 'rendicionesPendientes', 'sucursalNombre'));
+        $this->view('admin/dashboard', compact(
+            'kpis', 'rendicionesPendientes', 'sucursalNombre',
+            'chartCobranza', 'chartMora', 'chartRendiciones', 'top10Deudores', 'tendencia'
+        ));
     }
 
     private function staffDashboard(): void

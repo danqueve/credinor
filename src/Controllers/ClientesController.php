@@ -7,6 +7,8 @@ use App\Core\Controller;
 use App\Core\Request;
 use App\Core\Response;
 use App\Core\Session;
+use App\Core\Validator;
+use App\Core\ValidationException;
 use App\Models\Cliente;
 use App\Models\Sucursal;
 
@@ -54,15 +56,24 @@ class ClientesController extends Controller
         $this->validateCsrf();
         $this->requireRole(['admin', 'cobrador', 'vendedor']);
 
-        $dni    = trim(Request::post('dni', ''));
-        $nombre = trim(Request::post('nombre', ''));
+        $data = [
+            'dni'           => trim(Request::post('dni', '')),
+            'nombre'        => trim(Request::post('nombre', '')),
+            'telefono'      => trim(Request::post('telefono', '')),
+            'domicilio'     => trim(Request::post('domicilio', '')),
+            'localidad'     => trim(Request::post('localidad', '')),
+            'observaciones' => trim(Request::post('observaciones', '')),
+        ];
 
-        if (!$dni || !$nombre) {
-            Session::flash('error', 'DNI y nombre son obligatorios.');
-            Response::redirect('/vendedor/clientes/nuevo');
+        try {
+            Validator::throwIfInvalid($data, [
+                'dni'    => ['required', ['len', 7, 11], ['unique', 'clientes', 'dni']],
+                'nombre' => ['required', ['len', 2, 120]],
+            ]);
+        } catch (ValidationException $e) {
+            $this->validationFailed($e, '/vendedor/clientes/nuevo');
         }
 
-        // El admin elige sucursal desde el form; staff usa la propia
         $sucursalId = Auth::isAdmin()
             ? (int) Request::post('sucursal_id', 0)
             : Auth::sucursalId();
@@ -72,24 +83,18 @@ class ClientesController extends Controller
             Response::redirect('/vendedor/clientes/nuevo');
         }
 
-        // Verificar DNI único
-        if ($this->model->findByDni($dni)) {
-            Session::flash('error', "Ya existe un cliente con DNI {$dni}.");
-            Response::redirect('/vendedor/clientes/nuevo');
-        }
-
         $id = $this->model->create([
             'sucursal_id'  => $sucursalId,
             'vendedor_id'  => Auth::id(),
-            'dni'          => $dni,
-            'nombre'       => $nombre,
-            'telefono'     => trim(Request::post('telefono', '')),
-            'domicilio'    => trim(Request::post('domicilio', '')),
-            'localidad'    => trim(Request::post('localidad', '')),
-            'observaciones'=> trim(Request::post('observaciones', '')),
+            'dni'          => $data['dni'],
+            'nombre'       => $data['nombre'],
+            'telefono'     => $data['telefono'],
+            'domicilio'    => $data['domicilio'],
+            'localidad'    => $data['localidad'],
+            'observaciones'=> $data['observaciones'],
         ]);
 
-        Session::flash('success', "Cliente {$nombre} creado correctamente.");
+        Session::flash('success', "Cliente {$data['nombre']} creado correctamente.");
         Response::redirect('/vendedor/clientes/' . $id);
     }
 
@@ -133,7 +138,15 @@ class ClientesController extends Controller
             'observaciones' => trim(Request::post('observaciones', '')),
         ];
 
-        // Admin puede reasignar sucursal
+        try {
+            Validator::throwIfInvalid($data, [
+                'dni'    => ['required', ['len', 7, 11], ['unique', 'clientes', 'dni', $id]],
+                'nombre' => ['required', ['len', 2, 120]],
+            ]);
+        } catch (ValidationException $e) {
+            $this->validationFailed($e, '/vendedor/clientes/' . $id . '/editar');
+        }
+
         if (Auth::isAdmin() && Request::post('sucursal_id')) {
             $data['sucursal_id'] = (int) Request::post('sucursal_id');
         }

@@ -7,6 +7,7 @@ use App\Core\Controller;
 use App\Core\Request;
 use App\Core\Response;
 use App\Core\Session;
+use App\Core\ValidationException;
 use App\Models\Credito;
 use App\Models\Cliente;
 use App\Models\Cuota;
@@ -74,24 +75,27 @@ class CreditosController extends Controller
             Response::redirect('/vendedor/creditos/nuevo');
         }
 
-        try {
-            $id = $this->service->crearSolicitud([
-                'sucursal_id'            => $sucursalId,
-                'cliente_id'             => (int) Request::post('cliente_id'),
-                'garante_id'             => Request::post('garante_id'),
-                'monto_prestado'         => Request::post('monto_prestado'),
-                'monto_a_devolver'       => Request::post('monto_a_devolver'),
-                'cantidad_cuotas'        => Request::post('cantidad_cuotas'),
-                'frecuencia'             => Request::post('frecuencia'),
-                'fecha_inicio'           => Request::post('fecha_inicio'),
-                'fecha_primera_cuota'    => Request::post('fecha_primera_cuota'),
-                'aplica_mora'            => Request::post('aplica_mora', 0),
-                'porcentaje_mora_diaria' => Request::post('porcentaje_mora_diaria'),
-                'observaciones'          => Request::post('observaciones'),
-            ]);
+        $payload = [
+            'sucursal_id'            => $sucursalId,
+            'cliente_id'             => (int) Request::post('cliente_id'),
+            'garante_id'             => Request::post('garante_id'),
+            'monto_prestado'         => Request::post('monto_prestado'),
+            'monto_a_devolver'       => Request::post('monto_a_devolver'),
+            'cantidad_cuotas'        => Request::post('cantidad_cuotas'),
+            'frecuencia'             => Request::post('frecuencia'),
+            'fecha_inicio'           => Request::post('fecha_inicio'),
+            'fecha_primera_cuota'    => Request::post('fecha_primera_cuota'),
+            'aplica_mora'            => Request::post('aplica_mora', 0),
+            'porcentaje_mora_diaria' => Request::post('porcentaje_mora_diaria'),
+            'observaciones'          => Request::post('observaciones'),
+        ];
 
+        try {
+            $id = $this->service->crear($payload);
             Session::flash('success', 'Crédito creado y activado. Las cuotas fueron generadas correctamente.');
             Response::redirect('/creditos/' . $id);
+        } catch (ValidationException $e) {
+            $this->validationFailed($e, '/vendedor/creditos/nuevo');
         } catch (\DomainException $e) {
             Session::flash('error', $e->getMessage());
             Response::redirect('/vendedor/creditos/nuevo');
@@ -118,65 +122,68 @@ class CreditosController extends Controller
     // GET /admin/creditos
     public function adminIndex(): void
     {
-        $frecuencia  = Request::get('frecuencia', '');
-        $q           = trim(Request::get('q', ''));
-        // ?pendientes=1 muestra sólo los créditos esperando autorización
-        $soloEstado  = Request::get('pendientes') ? 'pendiente_autorizacion' : '';
-        $creditos    = $this->model->getAdminListado($soloEstado, $q, $frecuencia);
-        $stats       = $this->model->getAdminStats();
-        $soloPendientes = (bool) Request::get('pendientes');
-        $this->view('admin/creditos', compact('creditos', 'frecuencia', 'q', 'stats', 'soloPendientes'));
+        $frecuencia = Request::get('frecuencia', '');
+        $q          = trim(Request::get('q', ''));
+        $creditos   = $this->model->getAdminListado('', $q, $frecuencia);
+        $stats      = $this->model->getAdminStats();
+        $this->view('admin/creditos', compact('creditos', 'frecuencia', 'q', 'stats'));
     }
 
-    // GET /admin/creditos/{id}/autorizar  (formulario)
-    public function formAutorizar(array $params): void
-    {
-        $credito  = $this->model->getConDetalles((int) $params['id']);
-        if (!$credito) Response::abort(404);
-        $cuotas   = (new Cuota())->getByCreditoOrdenadas((int) $params['id']);
-        $cobradores = (new Usuario())->getCobradores();
-        $this->view('admin/autorizar_credito', compact('credito', 'cuotas', 'cobradores'));
-    }
-
-    // POST /admin/creditos/{id}/autorizar
-    public function autorizar(array $params): void
-    {
-        $this->validateCsrf();
-        $this->requireRole('admin');
-
-        try {
-            $cobradorId = (int) Request::post('cobrador_id');
-            if (!$cobradorId) throw new \DomainException('Seleccioná un cobrador.');
-
-            $this->service->autorizar((int) $params['id'], $cobradorId);
-
-            Session::flash('success', 'Crédito autorizado y cuotas generadas correctamente.');
-            Response::redirect('/admin/creditos?estado=activo');
-        } catch (\DomainException $e) {
-            Session::flash('error', $e->getMessage());
-            Response::redirect('/admin/creditos/' . $params['id'] . '/autorizar');
-        }
-    }
-
-    // POST /admin/creditos/{id}/rechazar
-    public function rechazar(array $params): void
+    // POST /admin/creditos/{id}/cancelar
+    public function cancelar(array $params): void
     {
         $this->validateCsrf();
         $this->requireRole('admin');
 
         $motivo = trim(Request::post('motivo', ''));
         if (!$motivo) {
-            Session::flash('error', 'Indicá el motivo del rechazo.');
-            Response::redirect('/admin/creditos/' . $params['id'] . '/autorizar');
+            Session::flash('error', 'El motivo de cancelación es obligatorio.');
+            Response::redirect('/creditos/' . $params['id']);
         }
 
         try {
-            $this->service->rechazar((int) $params['id'], $motivo);
-            Session::flash('success', 'Crédito rechazado.');
+            $this->service->cancelar((int) $params['id'], Auth::id(), $motivo);
+            Session::flash('success', 'Crédito cancelado correctamente.');
             Response::redirect('/admin/creditos');
         } catch (\DomainException $e) {
             Session::flash('error', $e->getMessage());
-            Response::redirect('/admin/creditos');
+            Response::redirect('/creditos/' . $params['id']);
+        }
+    }
+
+    // GET /admin/creditos/{id}/editar
+    public function edit(array $params): void
+    {
+        $this->requireRole('admin');
+        $credito    = $this->model->getConDetalles((int) $params['id']);
+        if (!$credito) Response::abort(404, 'Crédito no encontrado.');
+
+        $cobradores = (new Usuario())->getCobradores();
+        $modoEdicion = true;
+        $this->view('vendedor/credito_form', compact('credito', 'cobradores', 'modoEdicion'));
+    }
+
+    // POST /admin/creditos/{id}/editar
+    public function update(array $params): void
+    {
+        $this->validateCsrf();
+        $this->requireRole('admin');
+
+        try {
+            $this->service->actualizar((int) $params['id'], [
+                'cobrador_id'            => (int) Request::post('cobrador_id'),
+                'frecuencia'             => Request::post('frecuencia'),
+                'cantidad_cuotas'        => (int) Request::post('cantidad_cuotas'),
+                'monto_a_devolver'       => Request::post('monto_a_devolver'),
+                'fecha_primera_cuota'    => Request::post('fecha_primera_cuota'),
+                'observaciones'          => Request::post('observaciones'),
+            ], Auth::id());
+
+            Session::flash('success', 'Crédito actualizado correctamente.');
+            Response::redirect('/creditos/' . $params['id']);
+        } catch (\DomainException $e) {
+            Session::flash('error', $e->getMessage());
+            Response::redirect('/admin/creditos/' . $params['id'] . '/editar');
         }
     }
 }

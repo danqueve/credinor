@@ -65,10 +65,13 @@ $action    = $esEdicion
                                 <i class="isax isax-personalcard text-slate-400"></i>
                             </div>
                             <input id="dni" type="text" name="dni" required
-                                   class="form-input pl-10 bg-slate-50 border-slate-200 focus:bg-white focus:border-brand-500 w-full"
-                                   value="<?= e($cliente['dni'] ?? '') ?>"
+                                   class="form-input pl-10 bg-slate-50 focus:bg-white w-full <?= has_error('dni') ? 'border-red-400 focus:border-red-500' : 'border-slate-200 focus:border-brand-500' ?>"
+                                   value="<?= old('dni', $cliente['dni'] ?? '') ?>"
                                    placeholder="Ej: 12345678">
                         </div>
+                        <?php if (has_error('dni')): ?>
+                        <p class="text-xs font-medium text-red-600 mt-1.5 flex items-center gap-1"><i class="isax isax-warning-2"></i> <?= e(form_error('dni')) ?></p>
+                        <?php endif; ?>
                     </div>
                     <div>
                         <label for="nombre" class="form-label block text-sm font-bold text-slate-700 mb-2">Nombre Completo <span class="text-red-500">*</span></label>
@@ -77,10 +80,13 @@ $action    = $esEdicion
                                 <i class="isax isax-user text-slate-400"></i>
                             </div>
                             <input id="nombre" type="text" name="nombre" required
-                                   class="form-input pl-10 bg-slate-50 border-slate-200 focus:bg-white focus:border-brand-500 w-full"
-                                   value="<?= e($cliente['nombre'] ?? '') ?>"
+                                   class="form-input pl-10 bg-slate-50 focus:bg-white w-full <?= has_error('nombre') ? 'border-red-400 focus:border-red-500' : 'border-slate-200 focus:border-brand-500' ?>"
+                                   value="<?= old('nombre', $cliente['nombre'] ?? '') ?>"
                                    placeholder="Ej: Juan Pérez">
                         </div>
+                        <?php if (has_error('nombre')): ?>
+                        <p class="text-xs font-medium text-red-600 mt-1.5 flex items-center gap-1"><i class="isax isax-warning-2"></i> <?= e(form_error('nombre')) ?></p>
+                        <?php endif; ?>
                     </div>
                     <div class="md:col-span-2">
                         <label for="telefono" class="form-label block text-sm font-bold text-slate-700 mb-2">Teléfono</label>
