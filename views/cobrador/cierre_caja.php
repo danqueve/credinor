@@ -80,7 +80,7 @@ use App\Helpers\MoneyHelper;
                             </div>
                         </div>
                         <span class="font-extrabold text-brand-600" style="font-family: 'Outfit', sans-serif;">
-                            <?= MoneyHelper::formatShort((float)$p['monto']) ?>
+                            <?= MoneyHelper::format((float)$p['monto']) ?>
                         </span>
                     </div>
                     <?php endforeach; ?>

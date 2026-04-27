@@ -150,8 +150,8 @@ $diff      = $recibido > 0 ? $recibido - $declarado : null;
                             <tr class="hover:bg-slate-50/50 transition-colors">
                                 <td class="px-6 py-4 font-bold text-slate-800"><?= e($p['cliente_nombre']) ?></td>
                                 <td class="px-6 py-4 text-slate-500 font-medium">#<?= $p['numero_cuota'] ?></td>
-                                <td class="px-6 py-4 text-right font-semibold text-slate-700"><?= MoneyHelper::formatShort((float)$p['monto_a_capital']) ?></td>
-                                <td class="px-6 py-4 text-right font-semibold text-red-500"><?= MoneyHelper::formatShort((float)$p['monto_a_mora']) ?></td>
+                                <td class="px-6 py-4 text-right font-semibold text-slate-700"><?= MoneyHelper::format((float)$p['monto_a_capital']) ?></td>
+                                <td class="px-6 py-4 text-right font-semibold text-red-500"><?= MoneyHelper::format((float)$p['monto_a_mora']) ?></td>
                                 <td class="px-6 py-4 text-center">
                                     <?php if ($p['metodo_pago'] === 'transferencia'): ?>
                                         <span class="inline-flex items-center gap-1 text-[10px] font-bold text-purple-600 bg-purple-50 border border-purple-100 px-2 py-0.5 rounded uppercase tracking-wider">Transf.</span>
@@ -159,7 +159,7 @@ $diff      = $recibido > 0 ? $recibido - $declarado : null;
                                         <span class="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded uppercase tracking-wider">Efvo.</span>
                                     <?php endif; ?>
                                 </td>
-                                <td class="px-6 py-4 text-right font-bold text-brand-600"><?= MoneyHelper::formatShort((float)$p['monto']) ?></td>
+                                <td class="px-6 py-4 text-right font-bold text-brand-600"><?= MoneyHelper::format((float)$p['monto']) ?></td>
                             </tr>
                             <?php endforeach; ?>
                         </tbody>

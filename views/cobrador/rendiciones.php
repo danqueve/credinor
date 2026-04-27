@@ -61,7 +61,7 @@ $badges = [
                         </span>
                     </div>
                     <div class="flex justify-between items-center">
-                        <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Pagos incluídos</span>
+                        <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Pagos incluidos</span>
                         <span class="font-bold text-slate-600 text-sm">
                             <?= $r['cantidad_pagos'] ?>
                         </span>

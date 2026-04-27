@@ -45,7 +45,7 @@ $badges = [
                 </span>
             </div>
             <div class="bg-white/5 rounded-2xl p-4 border border-white/10 backdrop-blur-sm">
-                <span class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Pagos incluídos</span>
+                <span class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Pagos incluidos</span>
                 <span class="block text-2xl font-extrabold text-emerald-400 tracking-tight" style="font-family: 'Outfit', sans-serif;">
                     <?= count($rendicion['pagos'] ?? []) ?>
                 </span>
@@ -88,7 +88,7 @@ $badges = [
                             </span>
                         </div>
                         <span class="font-extrabold text-brand-600 tracking-tight" style="font-family: 'Outfit', sans-serif;">
-                            <?= MoneyHelper::formatShort((float)$pago['monto']) ?>
+                            <?= MoneyHelper::format((float)$pago['monto']) ?>
                         </span>
                     </div>
                     <div class="flex justify-between items-center mt-2">

@@ -47,7 +47,7 @@ class CobradorController extends Controller
         $this->requireStaff();
         $cobradorId = Auth::id();
         $pagos      = (new Pago())->getDelDia($cobradorId);
-        $total      = array_sum(array_column($pagos, 'monto'));
+        $total      = round(array_sum(array_column($pagos, 'monto')), 2);
 
         // Ver si ya cerró caja hoy
         $rendicion = (new Rendicion())->getDeHoy($cobradorId);

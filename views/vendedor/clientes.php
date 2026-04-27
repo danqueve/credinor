@@ -42,7 +42,7 @@
             </div>
             <h3 class="text-lg font-bold text-slate-800 mb-2">No se encontraron clientes</h3>
             <p class="text-slate-500 font-medium mb-6">
-                <?= $q ? "No hay resultados que coincidan con la búsqueda «{$q}»." : 'Aún no has registrado ningún cliente en el sistema.' ?>
+                <?= $q ? 'No hay resultados que coincidan con la búsqueda «' . e($q) . '».' : 'Aún no has registrado ningún cliente en el sistema.' ?>
             </p>
             <?php if (!$q): ?>
                 <a href="<?= url('vendedor/clientes/nuevo') ?>" class="btn-primary inline-flex">

@@ -161,7 +161,11 @@ $backUrl = Auth::isAdmin()
                         <th class="text-right">Pagado</th>
                         <th class="text-right">Saldo</th>
                         <th class="text-right">Estado</th>
-                        <?php if (Auth::isAdmin() && $credito['estado'] === 'activo'): ?>
+                        <?php
+                            $puedeCobrarcuota = $credito['estado'] === 'activo'
+                                && (Auth::isAdmin() || (Auth::isStaff() && (int)$credito['cobrador_id'] === Auth::id()));
+                        ?>
+                        <?php if ($puedeCobrarcuota): ?>
                         <th class="text-center">Acción</th>
                         <?php endif; ?>
                     </tr>
@@ -185,10 +189,15 @@ $backUrl = Auth::isAdmin()
                                 <?= ucfirst($cu['estado']) ?>
                             </span>
                         </td>
-                        <?php if (Auth::isAdmin() && $credito['estado'] === 'activo'): ?>
+                        <?php if ($puedeCobrarcuota): ?>
                         <td class="text-center py-2">
                             <?php if ($cu['estado'] !== 'pagada'): ?>
-                            <a href="<?= url('admin/creditos/' . $credito['id'] . '/pago/' . $cu['id']) ?>"
+                            <?php
+                                $pagoUrl = Auth::isAdmin()
+                                    ? url('admin/creditos/' . $credito['id'] . '/pago/' . $cu['id'])
+                                    : url('cobrador/pago/' . $credito['id'] . '/' . $cu['id']);
+                            ?>
+                            <a href="<?= $pagoUrl ?>"
                                class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-brand-600 text-white text-xs font-bold hover:bg-brand-700 active:scale-95 transition-all shadow-sm shadow-brand-500/30 whitespace-nowrap">
                                 <i class="isax isax-money-recive"></i> Cobrar
                             </a>

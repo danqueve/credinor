@@ -39,7 +39,7 @@
             </div>
             <h3 class="text-lg font-bold text-slate-800 mb-2">No se encontraron clientes</h3>
             <p class="text-slate-500 font-medium">
-                <?= $q ? "No hay resultados para la búsqueda «{$q}»." : 'Aún no hay clientes registrados en la plataforma.' ?>
+                <?= $q ? 'No hay resultados para la búsqueda «' . e($q) . '».' : 'Aún no hay clientes registrados en la plataforma.' ?>
             </p>
             <?php if ($q): ?>
                 <a href="<?= url('admin/clientes') ?>" class="btn-secondary mt-6 inline-flex">Ver todos los clientes</a>

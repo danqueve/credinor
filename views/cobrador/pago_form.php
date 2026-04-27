@@ -144,12 +144,12 @@ use App\Helpers\DateHelper;
                 <div class="flex gap-2 mt-4">
                     <button type="button" @click="pagarTotal()" class="flex-1 bg-brand-50 hover:bg-brand-100 text-brand-700 font-bold py-3 px-2 rounded-xl text-xs transition-colors border border-brand-200 active:scale-95 flex flex-col items-center justify-center gap-1">
                         <span class="opacity-70">Saldo Completo</span>
-                        <span class="text-sm"><?= MoneyHelper::formatShort($saldo) ?></span>
+                        <span class="text-sm"><?= MoneyHelper::format($saldo) ?></span>
                     </button>
                     <?php if ($mora > 0): ?>
                     <button type="button" @click="pagarTotalConMora()" class="flex-1 bg-red-50 hover:bg-red-100 text-red-700 font-bold py-3 px-2 rounded-xl text-xs transition-colors border border-red-200 active:scale-95 flex flex-col items-center justify-center gap-1">
                         <span class="opacity-70">Saldo + Mora</span>
-                        <span class="text-sm"><?= MoneyHelper::formatShort($saldo + $mora) ?></span>
+                        <span class="text-sm"><?= MoneyHelper::format($saldo + $mora) ?></span>
                     </button>
                     <?php endif; ?>
                 </div>
