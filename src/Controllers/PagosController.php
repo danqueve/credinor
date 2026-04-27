@@ -64,7 +64,7 @@ class PagosController extends Controller
         $montoMora = (float) str_replace(',', '.', Request::post('monto_mora', '0'));
         
         $metodoPago = Request::post('metodo_pago', 'efectivo');
-        if (!in_array($metodoPago, ['efectivo','transferencia'], true)) {
+        if (!\in_array($metodoPago, ['efectivo','transferencia'], true)) {
             $metodoPago = 'efectivo';
         }
 
@@ -80,6 +80,142 @@ class PagosController extends Controller
         } catch (\DomainException $e) {
             Session::flash('error', $e->getMessage());
             Response::redirect('/cobrador/pago/' . $creditoId . '/' . $cuotaId);
+        }
+    }
+
+    // GET /admin/creditos/{credito_id}/pago/{cuota_id}
+    public function adminForm(array $params): void
+    {
+        $this->requireRole('admin');
+
+        $cuotaId   = (int) $params['cuota_id'];
+        $creditoId = (int) $params['credito_id'];
+
+        $credito = (new Credito())->getConDetalles($creditoId);
+        if (!$credito) Response::abort(404, 'Crédito no encontrado.');
+        if ($credito['estado'] !== 'activo') Response::abort(403, 'El crédito no está activo.');
+
+        $cuotas = (new Cuota())->getByCreditoOrdenadas($creditoId);
+        $cuota  = array_values(array_filter($cuotas, fn($c) => (int)$c['id'] === $cuotaId))[0] ?? null;
+        if (!$cuota) Response::abort(404, 'Cuota no encontrada.');
+        if ($cuota['estado'] === 'pagada') Response::abort(403, 'La cuota ya está pagada.');
+
+        $saldo           = (float)$cuota['monto'] - (float)($cuota['monto_pagado'] ?? 0);
+        $pagosAnteriores = (new Pago())->getByCuota($cuotaId);
+
+        $this->view('admin/pago_form', compact('credito', 'cuota', 'cuotas', 'saldo', 'pagosAnteriores'));
+    }
+
+    // POST /admin/creditos/{credito_id}/pago/{cuota_id}
+    public function adminStore(array $params): void
+    {
+        $this->validateCsrf();
+        $this->requireRole('admin');
+
+        $cuotaId   = (int) $params['cuota_id'];
+        $creditoId = (int) $params['credito_id'];
+
+        $credito = (new Credito())->getConDetalles($creditoId);
+        if (!$credito) Response::abort(404);
+        if ($credito['estado'] !== 'activo') Response::abort(403);
+
+        $monto     = (float) str_replace(',', '.', Request::post('monto', '0'));
+        $montoMora = (float) str_replace(',', '.', Request::post('monto_mora', '0'));
+
+        $metodoPago = Request::post('metodo_pago', 'efectivo');
+        if (!\in_array($metodoPago, ['efectivo', 'transferencia'], true)) {
+            $metodoPago = 'efectivo';
+        }
+
+        try {
+            // Pago registrado por admin: se atribuye al cobrador del crédito,
+            // queda confirmado directamente (sin pasar por rendición).
+            $cobradorId = (int) $credito['cobrador_id'];
+            $this->service->registrar($cuotaId, $monto, $montoMora, $metodoPago, $cobradorId, 'confirmado');
+
+            Session::flash('success', 'Pago registrado correctamente.');
+            Response::redirect('/creditos/' . $creditoId);
+        } catch (\DomainException $e) {
+            Session::flash('error', $e->getMessage());
+            Response::redirect('/admin/creditos/' . $creditoId . '/pago/' . $cuotaId);
+        }
+    }
+
+    // GET /admin/api/creditos/{credito_id}/proxima-cuota  (JSON)
+    public function proximaCuotaJson(array $params): void
+    {
+        $this->requireRole('admin');
+        $creditoId = (int) $params['credito_id'];
+
+        $credito = (new Credito())->getConDetalles($creditoId);
+        if (!$credito) {
+            $this->json(['error' => 'Crédito no encontrado.'], 404);
+            return;
+        }
+        if ($credito['estado'] !== 'activo') {
+            $this->json(['error' => 'El crédito no está activo.'], 422);
+            return;
+        }
+
+        $cuotas    = (new Cuota())->getByCreditoOrdenadas($creditoId);
+        $pendiente = null;
+        foreach ($cuotas as $cu) {
+            if (\in_array($cu['estado'], ['pendiente', 'parcial', 'vencida'], true)) {
+                $pendiente = $cu;
+                break;
+            }
+        }
+
+        if (!$pendiente) {
+            $this->json(['error' => 'No hay cuotas pendientes en este crédito.'], 422);
+            return;
+        }
+
+        $saldo = (float)$pendiente['monto'] - (float)($pendiente['monto_pagado'] ?? 0);
+        $mora  = (float)$credito['mora_acumulada'] - (float)$credito['mora_pagada'];
+
+        $this->json([
+            'cuota'          => $pendiente,
+            'saldo'          => round($saldo, 2),
+            'mora'           => round($mora, 2),
+            'cobrador_nombre'=> $credito['cobrador_nombre'] ?? '',
+        ]);
+    }
+
+    // POST /admin/api/creditos/{credito_id}/pago/{cuota_id}  (JSON)
+    public function adminStoreJson(array $params): void
+    {
+        $this->requireRole('admin');
+
+        // Verificar CSRF (viene en el body del fetch)
+        $token = $_POST['_csrf'] ?? '';
+        if (!\App\Core\Session::verifyCsrf($token)) {
+            $this->json(['error' => 'Token de seguridad inválido.'], 403);
+            return;
+        }
+
+        $cuotaId   = (int) $params['cuota_id'];
+        $creditoId = (int) $params['credito_id'];
+
+        $credito = (new Credito())->getConDetalles($creditoId);
+        if (!$credito || $credito['estado'] !== 'activo') {
+            $this->json(['error' => 'Crédito no disponible.'], 422);
+            return;
+        }
+
+        $monto      = (float) str_replace(',', '.', Request::post('monto', '0'));
+        $montoMora  = (float) str_replace(',', '.', Request::post('monto_mora', '0'));
+        $metodoPago = Request::post('metodo_pago', 'efectivo');
+        if (!\in_array($metodoPago, ['efectivo', 'transferencia'], true)) {
+            $metodoPago = 'efectivo';
+        }
+
+        try {
+            $cobradorId = (int) $credito['cobrador_id'];
+            $this->service->registrar($cuotaId, $monto, $montoMora, $metodoPago, $cobradorId, 'confirmado');
+            $this->json(['success' => true, 'mensaje' => 'Pago registrado correctamente.']);
+        } catch (\DomainException $e) {
+            $this->json(['error' => $e->getMessage()], 422);
         }
     }
 

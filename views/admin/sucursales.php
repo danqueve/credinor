@@ -65,15 +65,16 @@
                                           action="<?= url('admin/sucursales/' . $s['id'] . '/toggle') ?>"
                                           onsubmit="return confirm('¿Confirmar cambio de estado?')">
                                         <?= csrf_field() ?>
-                                        <button type="submit" title="<?= $s['activa'] ? 'Desactivar' : 'Activar' ?>"
-                                                class="w-8 h-8 rounded-full flex items-center justify-center transition-colors <?= $s['activa'] ? 'bg-slate-50 text-slate-400 hover:bg-red-50 hover:text-red-600' : 'bg-slate-50 text-slate-400 hover:bg-emerald-50 hover:text-emerald-600' ?>">
-                                            <i class="isax <?= $s['activa'] ? 'isax-minus-cirlce' : 'isax-play-circle' ?>"></i>
+                                        <button type="submit"
+                                                class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all active:scale-95 <?= $s['activa'] ? 'bg-red-50 text-red-600 hover:bg-red-600 hover:text-white' : 'bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white' ?>">
+                                            <i class="isax <?= $s['activa'] ? 'isax-close-square' : 'isax-tick-square' ?>"></i>
+                                            <?= $s['activa'] ? 'Desactivar' : 'Activar' ?>
                                         </button>
                                     </form>
-                                    
+
                                     <a href="<?= url('admin/sucursales/' . $s['id'] . '/editar') ?>"
-                                       class="w-8 h-8 rounded-full bg-slate-50 text-slate-500 flex items-center justify-center hover:bg-brand-50 hover:text-brand-600 transition-colors" title="Editar">
-                                        <i class="isax isax-edit-2"></i>
+                                       class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 text-slate-600 text-xs font-bold hover:bg-brand-600 hover:text-white transition-all active:scale-95">
+                                        <i class="isax isax-edit-2"></i> Editar
                                     </a>
                                 </div>
                             </td>

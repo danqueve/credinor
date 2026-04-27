@@ -11,6 +11,7 @@ use App\Models\Credito;
 use App\Models\Cliente;
 use App\Models\Cuota;
 use App\Models\Garante;
+use App\Models\Sucursal;
 use App\Models\Usuario;
 use App\Services\CreditoService;
 
@@ -32,32 +33,50 @@ class CreditosController extends Controller
     {
         $this->requireStaff();
         $sucursalId = Auth::sucursalId();
-        $estado     = Request::get('estado', '');
-        $creditos   = $this->model->getBySucursal($sucursalId, $estado);
-        $this->view('vendedor/creditos', compact('creditos', 'estado'));
+        $frecuencia = Request::get('frecuencia', '');
+        $creditos   = $this->model->getBySucursal($sucursalId, $frecuencia);
+        $this->view('vendedor/creditos', compact('creditos', 'frecuencia'));
     }
 
     // GET /vendedor/creditos/nuevo?cliente_id=X
     public function nuevo(): void
     {
-        $this->requireStaff();
-        $clienteId = (int) Request::get('cliente_id', 0);
-        $cliente   = $clienteId ? (new Cliente())->find($clienteId) : null;
-        $clientes  = (new Cliente())->searchBySucursal(Auth::sucursalId(), '');
-        $garantes  = (new Garante())->all('nombre');
+        $this->requireRole(['admin', 'cobrador', 'vendedor']);
 
-        $this->view('vendedor/credito_form', compact('cliente', 'clientes', 'garantes'));
+        $clienteId  = (int) Request::get('cliente_id', 0);
+        $cliente    = $clienteId ? (new Cliente())->find($clienteId) : null;
+        $sucursalId = Auth::sucursalId();
+
+        // Admin ve todos los clientes; staff solo los de su sucursal
+        $clientes = $sucursalId
+            ? (new Cliente())->searchBySucursal($sucursalId, '')
+            : (new Cliente())->searchAdmin('');
+
+        $garantes   = (new Garante())->all('nombre');
+        $sucursales = Auth::isAdmin() ? (new Sucursal())->getActivas() : [];
+
+        $this->view('vendedor/credito_form', compact('cliente', 'clientes', 'garantes', 'sucursales'));
     }
 
     // POST /vendedor/creditos
     public function store(): void
     {
         $this->validateCsrf();
-        $this->requireStaff();
+        $this->requireRole(['admin', 'cobrador', 'vendedor']);
+
+        // Admin elige sucursal desde el form; staff usa la propia
+        $sucursalId = Auth::isAdmin()
+            ? (int) Request::post('sucursal_id', 0)
+            : Auth::sucursalId();
+
+        if (!$sucursalId) {
+            Session::flash('error', 'Debes seleccionar una sucursal para el crédito.');
+            Response::redirect('/vendedor/creditos/nuevo');
+        }
 
         try {
             $id = $this->service->crearSolicitud([
-                'sucursal_id'            => Auth::sucursalId(),
+                'sucursal_id'            => $sucursalId,
                 'cliente_id'             => (int) Request::post('cliente_id'),
                 'garante_id'             => Request::post('garante_id'),
                 'monto_prestado'         => Request::post('monto_prestado'),
@@ -71,8 +90,8 @@ class CreditosController extends Controller
                 'observaciones'          => Request::post('observaciones'),
             ]);
 
-            Session::flash('success', 'Solicitud de crédito creada. Quedará pendiente de autorización.');
-            Response::redirect('/vendedor/creditos/' . $id);
+            Session::flash('success', 'Crédito creado y activado. Las cuotas fueron generadas correctamente.');
+            Response::redirect('/creditos/' . $id);
         } catch (\DomainException $e) {
             Session::flash('error', $e->getMessage());
             Response::redirect('/vendedor/creditos/nuevo');
@@ -99,9 +118,14 @@ class CreditosController extends Controller
     // GET /admin/creditos
     public function adminIndex(): void
     {
-        $estado   = Request::get('estado', 'pendiente_autorizacion');
-        $creditos = $this->model->getAdminListado($estado);
-        $this->view('admin/creditos', compact('creditos', 'estado'));
+        $frecuencia  = Request::get('frecuencia', '');
+        $q           = trim(Request::get('q', ''));
+        // ?pendientes=1 muestra sólo los créditos esperando autorización
+        $soloEstado  = Request::get('pendientes') ? 'pendiente_autorizacion' : '';
+        $creditos    = $this->model->getAdminListado($soloEstado, $q, $frecuencia);
+        $stats       = $this->model->getAdminStats();
+        $soloPendientes = (bool) Request::get('pendientes');
+        $this->view('admin/creditos', compact('creditos', 'frecuencia', 'q', 'stats', 'soloPendientes'));
     }
 
     // GET /admin/creditos/{id}/autorizar  (formulario)

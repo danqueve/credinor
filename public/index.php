@@ -86,6 +86,10 @@ $router->get('/admin/creditos',                      [\App\Controllers\CreditosC
 $router->get('/admin/creditos/{id}/autorizar',       [\App\Controllers\CreditosController::class, 'formAutorizar'], $auth);
 $router->post('/admin/creditos/{id}/autorizar',      [\App\Controllers\CreditosController::class, 'autorizar'],    $auth);
 $router->post('/admin/creditos/{id}/rechazar',       [\App\Controllers\CreditosController::class, 'rechazar'],     $auth);
+$router->get('/admin/creditos/{credito_id}/pago/{cuota_id}',        [\App\Controllers\PagosController::class, 'adminForm'],       $auth);
+$router->post('/admin/creditos/{credito_id}/pago/{cuota_id}',       [\App\Controllers\PagosController::class, 'adminStore'],      $auth);
+$router->get('/admin/api/creditos/{credito_id}/proxima-cuota',      [\App\Controllers\PagosController::class, 'proximaCuotaJson'], $auth);
+$router->post('/admin/api/creditos/{credito_id}/pago/{cuota_id}',   [\App\Controllers\PagosController::class, 'adminStoreJson'],   $auth);
 
     // ——— COBRADOR ————————————————————————————————————————————
     $router->get('/cobrador/agenda',      [\App\Controllers\CobradorController::class, 'agenda'],     $auth);

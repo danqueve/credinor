@@ -18,10 +18,9 @@ class DashboardController extends Controller
         $rol = Auth::rol();
 
         match ($rol) {
-            'admin'    => $this->adminDashboard(),
-            'vendedor' => $this->vendedorDashboard(),
-            'cobrador' => $this->cobradorDashboard(),
-            default    => Response::redirect('/login'),
+            'admin'             => $this->adminDashboard(),
+            'vendedor','cobrador' => $this->staffDashboard(),
+            default             => Response::redirect('/login'),
         };
     }
 
@@ -80,21 +79,24 @@ class DashboardController extends Controller
         $this->view('admin/dashboard', compact('kpis', 'rendicionesPendientes', 'sucursalNombre'));
     }
 
-    private function vendedorDashboard(): void
+    private function staffDashboard(): void
     {
         $credito  = new Credito();
+        $cuota    = new Cuota();
         $sucursal = Auth::sucursalId();
+        $userId   = Auth::id();
+
+        $cobradoHoy = $cuota->totalCobradoHoy($userId);
+        $hoy        = $cuota->getAgendaHoy($userId);
+        $vencidas   = $cuota->getAgendaVencida($userId);
 
         $data = [
-            'mis_pendientes' => $credito->countPendientesBySucursal($sucursal),
-            'mis_activos'    => $credito->countActivosBySucursal($sucursal),
+            'mis_pendientes'  => $credito->countPendientesBySucursal($sucursal),
+            'mis_activos'     => $credito->countActivosBySucursal($sucursal),
+            'cobrado_hoy'     => $cobradoHoy,
+            'cuotas_hoy'      => count($hoy),
+            'cuotas_vencidas' => count($vencidas),
         ];
         $this->view('vendedor/dashboard', $data);
-    }
-
-    private function cobradorDashboard(): void
-    {
-        // El cobrador va directo a su agenda
-        Response::redirect('/cobrador/agenda');
     }
 }

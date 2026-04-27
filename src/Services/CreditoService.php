@@ -39,39 +39,53 @@ class CreditoService
             throw new \DomainException('El monto prestado debe ser mayor a 0.');
         }
 
-        $stmt = $this->db->prepare("
-            INSERT INTO creditos
-                (sucursal_id, cliente_id, vendedor_id, garante_id,
-                 monto_prestado, monto_a_devolver, cantidad_cuotas,
-                 frecuencia, fecha_inicio, fecha_primera_cuota,
-                 aplica_mora, porcentaje_mora_diaria, observaciones, estado)
-            VALUES
-                (:sucursal_id, :cliente_id, :vendedor_id, :garante_id,
-                 :monto_prestado, :monto_a_devolver, :cantidad_cuotas,
-                 :frecuencia, :fecha_inicio, :fecha_primera_cuota,
-                 :aplica_mora, :porcentaje_mora_diaria, :observaciones,
-                 'pendiente_autorizacion')
-        ");
+        $userId = Auth::id();
 
-        $stmt->execute([
-            ':sucursal_id'           => $data['sucursal_id'],
-            ':cliente_id'            => $data['cliente_id'],
-            ':vendedor_id'           => Auth::id(),
-            ':garante_id'            => $data['garante_id'] ?: null,
-            ':monto_prestado'        => $montoPrestado,
-            ':monto_a_devolver'      => $montoDevolver,
-            ':cantidad_cuotas'       => $cantCuotas,
-            ':frecuencia'            => $data['frecuencia'],
-            ':fecha_inicio'          => $data['fecha_inicio'],
-            ':fecha_primera_cuota'   => $data['fecha_primera_cuota'],
-            ':aplica_mora'           => (int) ($data['aplica_mora'] ?? 1),
-            ':porcentaje_mora_diaria'=> $data['porcentaje_mora_diaria'] ?: null,
-            ':observaciones'         => $data['observaciones'] ?? null,
-        ]);
+        $this->db->beginTransaction();
+        try {
+            $stmt = $this->db->prepare("
+                INSERT INTO creditos
+                    (sucursal_id, cliente_id, vendedor_id, cobrador_id, garante_id,
+                     monto_prestado, monto_a_devolver, cantidad_cuotas,
+                     frecuencia, fecha_inicio, fecha_primera_cuota,
+                     aplica_mora, porcentaje_mora_diaria, observaciones, estado)
+                VALUES
+                    (:sucursal_id, :cliente_id, :vendedor_id, :cobrador_id, :garante_id,
+                     :monto_prestado, :monto_a_devolver, :cantidad_cuotas,
+                     :frecuencia, :fecha_inicio, :fecha_primera_cuota,
+                     :aplica_mora, :porcentaje_mora_diaria, :observaciones,
+                     'activo')
+            ");
 
-        $creditoId = (int) $this->db->lastInsertId();
+            $stmt->execute([
+                ':sucursal_id'           => $data['sucursal_id'],
+                ':cliente_id'            => $data['cliente_id'],
+                ':vendedor_id'           => $userId,
+                ':cobrador_id'           => $userId,
+                ':garante_id'            => $data['garante_id'] ?: null,
+                ':monto_prestado'        => $montoPrestado,
+                ':monto_a_devolver'      => $montoDevolver,
+                ':cantidad_cuotas'       => $cantCuotas,
+                ':frecuencia'            => $data['frecuencia'],
+                ':fecha_inicio'          => $data['fecha_inicio'],
+                ':fecha_primera_cuota'   => $data['fecha_primera_cuota'],
+                ':aplica_mora'           => (int) ($data['aplica_mora'] ?? 0),
+                ':porcentaje_mora_diaria'=> $data['porcentaje_mora_diaria'] ?: null,
+                ':observaciones'         => $data['observaciones'] ?? null,
+            ]);
 
-        $this->registrarLog($creditoId, null, 'pendiente_autorizacion', 'Solicitud creada por vendedor.');
+            $creditoId = (int) $this->db->lastInsertId();
+
+            $credito = (new Credito())->find($creditoId);
+            $this->generarCuotas($credito);
+
+            $this->registrarLog($creditoId, null, 'activo', 'Crédito creado y activado por staff.');
+
+            $this->db->commit();
+        } catch (\Throwable $e) {
+            $this->db->rollBack();
+            throw $e;
+        }
 
         return $creditoId;
     }

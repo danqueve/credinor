@@ -116,23 +116,22 @@ use App\Helpers\MoneyHelper;
                     </div>
                 </div>
 
-                <div class="text-right shrink-0 mr-1">
+                <div class="text-right shrink-0 flex flex-col items-end gap-1.5">
                     <p class="font-extrabold text-base <?= $isAnulado ? 'line-through text-slate-300' : 'text-slate-800' ?>" style="font-family: 'Outfit', sans-serif;">
                         <?= MoneyHelper::formatShort((float)$pago['monto']) ?>
                     </p>
                     <?php if ((float)$pago['monto_a_mora'] > 0 && !$isAnulado): ?>
-                    <p class="text-[10px] font-bold text-red-500 mt-0.5 flex items-center justify-end gap-1">
+                    <p class="text-[10px] font-bold text-red-500 flex items-center justify-end gap-1">
                         <i class="isax isax-danger text-red-400"></i> <?= MoneyHelper::formatShort((float)$pago['monto_a_mora']) ?> mora
                     </p>
                     <?php endif; ?>
+                    <?php if (!$isAnulado): ?>
+                    <a href="<?= url('cobrador/pago/' . $pago['id'] . '/recibo') ?>"
+                       class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-100 text-slate-500 text-[11px] font-bold hover:bg-brand-50 hover:text-brand-600 hover:border-brand-200 border border-transparent transition-all">
+                        <i class="isax isax-receipt-2"></i> Recibo
+                    </a>
+                    <?php endif; ?>
                 </div>
-
-                <!-- Acción Ver Recibo (Solo mobile tap/desktop hover) -->
-                <a href="<?= url('cobrador/pago/' . $pago['id'] . '/recibo') ?>"
-                   class="absolute right-4 opacity-0 group-hover:opacity-100 md:opacity-0 w-8 h-8 rounded-full bg-white border border-slate-200 text-slate-500 flex items-center justify-center hover:text-brand-600 hover:bg-brand-50 hover:border-brand-200 transition-all shadow-sm"
-                   title="Ver recibo">
-                    <i class="isax isax-receipt-2"></i>
-                </a>
             </div>
 
             <?php endforeach; ?>

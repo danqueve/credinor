@@ -3,15 +3,15 @@ use App\Helpers\MoneyHelper;
 ?>
 <div class="max-w-3xl mx-auto space-y-6 pb-10">
     <div class="flex items-center gap-4">
-        <a href="<?= url('vendedor/creditos') ?>" class="w-10 h-10 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-500 hover:text-brand-600 hover:border-brand-200 hover:bg-brand-50 transition-all">
+        <a href="<?= url(\App\Core\Auth::isAdmin() ? 'admin/creditos' : 'vendedor/creditos') ?>" class="w-10 h-10 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-500 hover:text-brand-600 hover:border-brand-200 hover:bg-brand-50 transition-all">
             <i class="isax isax-arrow-left-2"></i>
         </a>
         <div>
             <h1 class="text-3xl font-extrabold text-slate-900 tracking-tight" style="font-family: 'Outfit', sans-serif;">
-                Nueva solicitud de crédito
+                Nuevo crédito
             </h1>
             <p class="text-sm font-medium text-slate-500 mt-1">
-                Completa los datos para enviar la solicitud a autorización
+                Completa los datos para crear y activar el crédito
             </p>
         </div>
     </div>
@@ -27,6 +27,29 @@ use App\Helpers\MoneyHelper;
             </div>
             
             <div class="space-y-6 relative z-10">
+
+                <?php if (\App\Core\Auth::isAdmin() && !empty($sucursales)): ?>
+                <!-- Sucursal (solo visible para admin) -->
+                <div>
+                    <label for="sucursal_id" class="form-label block text-sm font-bold text-slate-700 mb-2">
+                        Sucursal <span class="text-red-500">*</span>
+                    </label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                            <i class="isax isax-building text-slate-400"></i>
+                        </div>
+                        <select id="sucursal_id" name="sucursal_id" required
+                                class="form-select pl-10 bg-slate-50 border-slate-200 focus:bg-white focus:border-brand-500 w-full">
+                            <option value="">— Seleccionar sucursal —</option>
+                            <?php foreach ($sucursales as $s): ?>
+                                <option value="<?= $s['id'] ?>"><?= e($s['nombre']) ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                </div>
+                <div class="border-t border-slate-100"></div>
+                <?php endif; ?>
+
                 <!-- Cliente -->
                 <div>
                     <label class="form-label block text-sm font-bold text-slate-700 mb-2">Cliente Solicitante <span class="text-red-500">*</span></label>
@@ -174,12 +197,12 @@ use App\Helpers\MoneyHelper;
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <!-- Mora -->
-                    <div class="bg-red-50/50 rounded-2xl border border-red-100 p-5" x-data="{ aplica: true }">
+                    <div class="bg-red-50/50 rounded-2xl border border-red-100 p-5" x-data="{ aplica: false }">
                         <label class="flex items-center gap-3 cursor-pointer">
                             <div class="relative flex items-center">
                                 <input id="aplica_mora" type="checkbox" name="aplica_mora" value="1"
                                        class="w-5 h-5 rounded border-red-300 text-red-600 focus:ring-red-500 focus:ring-offset-0 cursor-pointer"
-                                       x-model="aplica" checked>
+                                       x-model="aplica">
                             </div>
                             <div>
                                 <span class="block text-sm font-bold text-red-900">Aplicar mora por atraso</span>
@@ -238,9 +261,9 @@ use App\Helpers\MoneyHelper;
 
         <div class="flex flex-col sm:flex-row gap-3">
             <button type="submit" class="btn-primary sm:flex-1 justify-center py-4 text-base shadow-lg shadow-brand-500/30">
-                <i class="isax isax-send-1"></i> Enviar Solicitud a Autorización
+                <i class="isax isax-tick-circle"></i> Crear y Activar Crédito
             </button>
-            <a href="<?= url('vendedor/creditos') ?>" class="btn-secondary sm:flex-1 justify-center py-4 bg-white hover:bg-slate-50 border-slate-200">
+            <a href="<?= url(\App\Core\Auth::isAdmin() ? 'admin/creditos' : 'vendedor/creditos') ?>" class="btn-secondary sm:flex-1 justify-center py-4 bg-white hover:bg-slate-50 border-slate-200">
                 Cancelar
             </a>
         </div>

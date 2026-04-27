@@ -18,7 +18,7 @@ $estadosCuota = [
 ];
 $backUrl = Auth::isAdmin()
     ? url('admin/creditos')
-    : (Auth::isVendedor() ? url('vendedor/creditos') : url('dashboard'));
+    : (Auth::isStaff() ? url('vendedor/creditos') : url('dashboard'));
 ?>
 <div class="max-w-4xl mx-auto space-y-6 pb-10">
     <!-- Encabezado -->
@@ -161,6 +161,9 @@ $backUrl = Auth::isAdmin()
                         <th class="text-right">Pagado</th>
                         <th class="text-right">Saldo</th>
                         <th class="text-right">Estado</th>
+                        <?php if (Auth::isAdmin() && $credito['estado'] === 'activo'): ?>
+                        <th class="text-center">Acción</th>
+                        <?php endif; ?>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100">
@@ -182,6 +185,20 @@ $backUrl = Auth::isAdmin()
                                 <?= ucfirst($cu['estado']) ?>
                             </span>
                         </td>
+                        <?php if (Auth::isAdmin() && $credito['estado'] === 'activo'): ?>
+                        <td class="text-center py-2">
+                            <?php if ($cu['estado'] !== 'pagada'): ?>
+                            <a href="<?= url('admin/creditos/' . $credito['id'] . '/pago/' . $cu['id']) ?>"
+                               class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-brand-600 text-white text-xs font-bold hover:bg-brand-700 active:scale-95 transition-all shadow-sm shadow-brand-500/30 whitespace-nowrap">
+                                <i class="isax isax-money-recive"></i> Cobrar
+                            </a>
+                            <?php else: ?>
+                            <span class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-emerald-50 text-emerald-600 text-xs font-bold border border-emerald-100">
+                                <i class="isax isax-tick-circle"></i> Saldada
+                            </span>
+                            <?php endif; ?>
+                        </td>
+                        <?php endif; ?>
                     </tr>
                     <?php endforeach; ?>
                 </tbody>
@@ -197,7 +214,7 @@ $backUrl = Auth::isAdmin()
             <i class="isax isax-clock text-slate-400"></i> Historial de Cambios
         </h2>
         <div class="space-y-4">
-            <?php foreach ($log as $entry): ?>
+            <?php foreach ((array)$log as $entry): ?>
             <div class="flex gap-4 items-start relative">
                 <!-- Timeline dot -->
                 <div class="absolute left-[11px] top-6 bottom-[-16px] w-[2px] bg-slate-200 last:hidden"></div>

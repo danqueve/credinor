@@ -129,9 +129,9 @@ use App\Core\Auth;
                                     <?= ucfirst(str_replace('_', ' ', $c['estado'])) ?>
                                 </span>
                                 
-                                <a href="<?= url('creditos/' . $c['id']) ?>" 
-                                   class="w-10 h-10 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center hover:bg-brand-100 hover:text-brand-600 transition-colors">
-                                    <i class="isax isax-arrow-right-3"></i>
+                                <a href="<?= url('creditos/' . $c['id']) ?>"
+                                   class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 text-slate-600 text-xs font-bold hover:bg-brand-600 hover:text-white transition-all active:scale-95 shrink-0">
+                                    <i class="isax isax-arrow-right-3"></i> Ver
                                 </a>
                             </div>
                         </div>

@@ -96,7 +96,7 @@ CREATE TABLE IF NOT EXISTS creditos (
     frecuencia                  ENUM('diaria','semanal','quincenal','mensual') NOT NULL,
     fecha_inicio                DATE NOT NULL,
     fecha_primera_cuota         DATE NOT NULL,
-    aplica_mora                 TINYINT(1) NOT NULL DEFAULT 1,
+    aplica_mora                 TINYINT(1) NOT NULL DEFAULT 0,
     porcentaje_mora_diaria      DECIMAL(5,4),    -- NULL = usa config global
     mora_acumulada              DECIMAL(12,2) NOT NULL DEFAULT 0.00,
     mora_pagada                 DECIMAL(12,2) NOT NULL DEFAULT 0.00,

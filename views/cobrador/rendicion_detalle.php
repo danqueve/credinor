@@ -47,7 +47,7 @@ $badges = [
             <div class="bg-white/5 rounded-2xl p-4 border border-white/10 backdrop-blur-sm">
                 <span class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Pagos incluídos</span>
                 <span class="block text-2xl font-extrabold text-emerald-400 tracking-tight" style="font-family: 'Outfit', sans-serif;">
-                    <?= $rendicion['cantidad_pagos'] ?>
+                    <?= count($rendicion['pagos'] ?? []) ?>
                 </span>
             </div>
         </div>

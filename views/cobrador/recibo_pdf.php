@@ -24,8 +24,8 @@ use App\Helpers\DateHelper;
     .row { display: flex; justify-content: space-between; margin: 2px 0; }
     .muted { color: #555; }
     .footer { font-size: 8px; color: #888; text-align: center; }
-    .logo { font-size: 16px; font-weight: bold; color: #1e40af; letter-spacing: 1px; }
-    .highlight { background: #f0f7ff; border-left: 2px solid #1e40af; padding: 4px 6px; margin: 4px 0; }
+    .logo { font-size: 16px; font-weight: bold; color: #3730a3; letter-spacing: 1px; }
+    .highlight { background: #f0f7ff; border-left: 2px solid #3730a3; padding: 4px 6px; margin: 4px 0; }
 </style>
 </head>
 <body>

@@ -157,8 +157,8 @@ $icons = [
                                     </a>
                                 <?php else: ?>
                                     <a href="<?= url('admin/rendiciones/' . $r['id']) ?>"
-                                       class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-slate-100 text-slate-500 hover:bg-brand-100 hover:text-brand-600 transition-colors tooltip" title="Ver detalle">
-                                        <i class="isax isax-eye"></i>
+                                       class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 text-slate-600 text-xs font-bold hover:bg-brand-600 hover:text-white transition-all active:scale-95">
+                                        <i class="isax isax-arrow-right-3"></i> Ver
                                     </a>
                                 <?php endif; ?>
                             </td>

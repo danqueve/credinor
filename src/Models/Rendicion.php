@@ -108,7 +108,12 @@ class Rendicion extends Model
     public function getDelCobrador(int $cobradorId, int $limit = 30): array
     {
         return $this->query(
-            "SELECT * FROM rendiciones WHERE cobrador_id = ? ORDER BY fecha DESC LIMIT ?",
+            "SELECT r.*,
+                    (SELECT COUNT(*) FROM pagos p WHERE p.rendicion_id = r.id) AS cantidad_pagos
+             FROM rendiciones r
+             WHERE r.cobrador_id = ?
+             ORDER BY r.fecha DESC, r.id DESC
+             LIMIT ?",
             [$cobradorId, $limit]
         )->fetchAll();
     }

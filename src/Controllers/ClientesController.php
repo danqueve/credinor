@@ -8,6 +8,7 @@ use App\Core\Request;
 use App\Core\Response;
 use App\Core\Session;
 use App\Models\Cliente;
+use App\Models\Sucursal;
 
 class ClientesController extends Controller
 {
@@ -38,21 +39,36 @@ class ClientesController extends Controller
     // GET /vendedor/clientes/nuevo
     public function crear(): void
     {
-        $this->requireStaff();
-        $this->view('vendedor/cliente_form', ['cliente' => null, 'accion' => 'crear']);
+        $this->requireRole(['admin', 'cobrador', 'vendedor']);
+        $sucursales = Auth::isAdmin() ? (new Sucursal())->getActivas() : [];
+        $this->view('vendedor/cliente_form', [
+            'cliente'    => null,
+            'accion'     => 'crear',
+            'sucursales' => $sucursales,
+        ]);
     }
 
     // POST /vendedor/clientes
     public function store(): void
     {
         $this->validateCsrf();
-        $this->requireStaff();
+        $this->requireRole(['admin', 'cobrador', 'vendedor']);
 
         $dni    = trim(Request::post('dni', ''));
         $nombre = trim(Request::post('nombre', ''));
 
         if (!$dni || !$nombre) {
             Session::flash('error', 'DNI y nombre son obligatorios.');
+            Response::redirect('/vendedor/clientes/nuevo');
+        }
+
+        // El admin elige sucursal desde el form; staff usa la propia
+        $sucursalId = Auth::isAdmin()
+            ? (int) Request::post('sucursal_id', 0)
+            : Auth::sucursalId();
+
+        if (!$sucursalId) {
+            Session::flash('error', 'Debes seleccionar una sucursal.');
             Response::redirect('/vendedor/clientes/nuevo');
         }
 
@@ -63,16 +79,13 @@ class ClientesController extends Controller
         }
 
         $id = $this->model->create([
-            'sucursal_id'  => Auth::sucursalId(),
+            'sucursal_id'  => $sucursalId,
             'vendedor_id'  => Auth::id(),
             'dni'          => $dni,
             'nombre'       => $nombre,
             'telefono'     => trim(Request::post('telefono', '')),
-            'email'        => trim(Request::post('email', '')),
             'domicilio'    => trim(Request::post('domicilio', '')),
             'localidad'    => trim(Request::post('localidad', '')),
-            'lat'          => Request::post('lat') ?: null,
-            'lng'          => Request::post('lng') ?: null,
             'observaciones'=> trim(Request::post('observaciones', '')),
         ]);
 
@@ -84,41 +97,48 @@ class ClientesController extends Controller
     public function show(array $params): void
     {
         $this->requireRole(['admin', 'cobrador', 'vendedor']);
-        $cliente = $this->model->findOrFail((int) $params['id']);
-        // Créditos del cliente
+        $cliente  = $this->model->findOrFail((int) $params['id']);
         $creditos = (new \App\Models\Credito())->getByCliente((int) $params['id']);
-        $layout = Auth::isAdmin() ? 'admin' : 'vendedor';
         $this->view('shared/cliente_detalle', compact('cliente', 'creditos'));
     }
 
     // GET /vendedor/clientes/{id}/editar
     public function editar(array $params): void
     {
-        $this->requireStaff();
-        $cliente = $this->model->findOrFail((int) $params['id']);
-        $this->view('vendedor/cliente_form', ['cliente' => $cliente, 'accion' => 'editar']);
+        $this->requireRole(['admin', 'cobrador', 'vendedor']);
+        $cliente    = $this->model->findOrFail((int) $params['id']);
+        $sucursales = Auth::isAdmin() ? (new Sucursal())->getActivas() : [];
+        $this->view('vendedor/cliente_form', [
+            'cliente'    => $cliente,
+            'accion'     => 'editar',
+            'sucursales' => $sucursales,
+        ]);
     }
 
     // POST /vendedor/clientes/{id}/editar
     public function update(array $params): void
     {
         $this->validateCsrf();
-        $this->requireStaff();
+        $this->requireRole(['admin', 'cobrador', 'vendedor']);
 
-        $id     = (int) $params['id'];
-        $cliente= $this->model->findOrFail($id);
+        $id      = (int) $params['id'];
+        $cliente = $this->model->findOrFail($id);
 
-        $this->model->update($id, [
+        $data = [
             'dni'           => trim(Request::post('dni', $cliente['dni'])),
             'nombre'        => trim(Request::post('nombre', $cliente['nombre'])),
             'telefono'      => trim(Request::post('telefono', '')),
-            'email'         => trim(Request::post('email', '')),
             'domicilio'     => trim(Request::post('domicilio', '')),
             'localidad'     => trim(Request::post('localidad', '')),
-            'lat'           => Request::post('lat') ?: null,
-            'lng'           => Request::post('lng') ?: null,
             'observaciones' => trim(Request::post('observaciones', '')),
-        ]);
+        ];
+
+        // Admin puede reasignar sucursal
+        if (Auth::isAdmin() && Request::post('sucursal_id')) {
+            $data['sucursal_id'] = (int) Request::post('sucursal_id');
+        }
+
+        $this->model->update($id, $data);
 
         Session::flash('success', 'Cliente actualizado correctamente.');
         Response::redirect('/vendedor/clientes/' . $id);
@@ -127,15 +147,19 @@ class ClientesController extends Controller
     // GET /api/clientes/buscar?q=... (JSON para autocompletar en formulario de crédito)
     public function buscarJson(): void
     {
-        $this->requireStaff();
+        $this->requireRole(['admin', 'cobrador', 'vendedor']);
         $q = trim(Request::get('q', ''));
-        $sucursalId = Auth::sucursalId() ?? 0;
+
+        $sucursalId = Auth::isAdmin() ? null : Auth::sucursalId();
 
         if (strlen($q) < 2) {
             $this->json([]);
         }
 
-        $clientes = $this->model->searchBySucursal($sucursalId, $q);
+        $clientes = $sucursalId
+            ? $this->model->searchBySucursal($sucursalId, $q)
+            : $this->model->searchAdmin($q);
+
         $this->json(array_map(fn($c) => [
             'id'     => $c['id'],
             'label'  => $c['nombre'] . ' — DNI ' . $c['dni'],

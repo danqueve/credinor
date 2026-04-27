@@ -26,7 +26,7 @@ class PagoService
      * @param  float $montoAMora      Porción que el cobrador destina a mora (default 0)
      * @return int   ID del pago creado
      */
-    public function registrar(int $cuotaId, float $montoIngresado, float $montoAMora = 0.0, string $metodoPago = 'efectivo'): int
+    public function registrar(int $cuotaId, float $montoIngresado, float $montoAMora = 0.0, string $metodoPago = 'efectivo', ?int $cobradorOverride = null, string $estadoInicial = 'pendiente_rendir'): int
     {
         if ($montoIngresado <= 0) {
             throw new \DomainException('El monto debe ser mayor a cero.');
@@ -71,15 +71,16 @@ class PagoService
             $stmt = $this->db->prepare("
                 INSERT INTO pagos
                     (cuota_id, cobrador_id, monto, monto_a_capital, monto_a_mora, metodo_pago, estado)
-                VALUES (?, ?, ?, ?, ?, ?, 'pendiente_rendir')
+                VALUES (?, ?, ?, ?, ?, ?, ?)
             ");
             $stmt->execute([
                 $cuotaId,
-                Auth::id(),
+                $cobradorOverride ?? Auth::id(),
                 $montoIngresado,
                 $montoACapital,
                 $montoAMora,
-                $metodoPago
+                $metodoPago,
+                $estadoInicial,
             ]);
             $pagoId = (int) $this->db->lastInsertId();
 

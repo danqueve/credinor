@@ -125,7 +125,7 @@ class ReportesController extends Controller
              LEFT JOIN rendiciones r ON r.cobrador_id = u.id
                  AND r.fecha >= ?
                  AND r.estado = 'confirmada'
-             WHERE u.rol = 'cobrador' AND u.activo = 1
+             WHERE u.rol IN ('cobrador','vendedor') AND u.activo = 1
              GROUP BY u.id, u.nombre
              ORDER BY total_cobrado DESC"
         );
@@ -263,7 +263,7 @@ class ReportesController extends Controller
     private function getCobradores(): array
     {
         return $this->db->query(
-            "SELECT id, nombre FROM usuarios WHERE rol = 'cobrador' AND activo = 1 ORDER BY nombre"
+            "SELECT id, nombre FROM usuarios WHERE rol IN ('cobrador','vendedor') AND activo = 1 ORDER BY nombre"
         )->fetchAll();
     }
 }
