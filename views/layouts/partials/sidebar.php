@@ -42,10 +42,7 @@ $userInit = mb_strtoupper(mb_substr($userName, 0, 1));
 
     <!-- Logo -->
     <a href="<?= url('dashboard') ?>" class="sidebar-logo">
-        <div class="sidebar-logo-icon">
-            <i class="isax isax-wallet-money" style="font-size:1rem;"></i>
-        </div>
-        <span class="sidebar-logo-text">Crédinor</span>
+        <img src="<?= asset('img/logo.png') ?>" alt="Crédinor" class="h-8 w-auto object-contain">
     </a>
 
     <!-- Navigation -->

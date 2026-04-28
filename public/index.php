@@ -135,6 +135,9 @@ $router->get('/admin/reportes/cartera',                     [\App\Controllers\Re
 $router->get('/admin/reportes/mora',                        [\App\Controllers\ReportesController::class, 'mora'],       $auth);
 $router->get('/admin/reportes/cobradores',                  [\App\Controllers\ReportesController::class, 'cobradores'], $auth);
 
+// ——— MANUAL ——————————————————————————————————————————————
+$router->get('/manual', [\App\Controllers\ManualController::class, 'index'], $auth);
+
 // ——— SUCURSALES ——————————————————————————————————————————
 $router->get('/admin/sucursales',                           [\App\Controllers\SucursalesController::class, 'index'],       $auth);
 $router->get('/admin/sucursales/nueva',                     [\App\Controllers\SucursalesController::class, 'crear'],       $auth);

@@ -35,15 +35,6 @@ class CreditoService
             'fecha_inicio'    => ['required', 'date', 'date_not_past'],
         ]);
 
-        // Cliente sin crédito activo
-        $stmtActivo = $this->db->prepare(
-            "SELECT COUNT(*) FROM creditos WHERE cliente_id = ? AND estado = 'activo'"
-        );
-        $stmtActivo->execute([(int)$data['cliente_id']]);
-        if ((int)$stmtActivo->fetchColumn() > 0) {
-            throw new \DomainException('Este cliente ya tiene un crédito activo. Finalícelo o cancélelo antes de crear uno nuevo.');
-        }
-
         $montoPrestado  = (float) $data['monto_prestado'];
         $montoDevolver  = (float) $data['monto_a_devolver'];
         $cantCuotas     = (int)   $data['cantidad_cuotas'];

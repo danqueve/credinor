@@ -4,9 +4,9 @@ return [
     'driver'   => 'mysql',
     'host'     => $_ENV['DB_HOST']     ?? 'localhost',
     'port'     => $_ENV['DB_PORT']     ?? '3306',
-    'database' => $_ENV['DB_DATABASE'] ?? 'a0040079_credinor',
-    'username' => $_ENV['DB_USERNAME'] ?? 'root',
-    'password' => $_ENV['DB_PASSWORD'] ?? '',
+    'database' => $_ENV['DB_DATABASE'] ?? 'a0040079_credin',
+    'username' => $_ENV['DB_USERNAME'] ?? 'a0040079_credin',
+    'password' => $_ENV['DB_PASSWORD'] ?? 'GEvulagu62',
     'charset'  => 'utf8mb4',
     'options'  => [
         PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,

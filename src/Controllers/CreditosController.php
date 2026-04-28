@@ -122,11 +122,12 @@ class CreditosController extends Controller
     // GET /admin/creditos
     public function adminIndex(): void
     {
-        $frecuencia = Request::get('frecuencia', '');
-        $q          = trim(Request::get('q', ''));
-        $creditos   = $this->model->getAdminListado('', $q, $frecuencia);
-        $stats      = $this->model->getAdminStats();
-        $this->view('admin/creditos', compact('creditos', 'frecuencia', 'q', 'stats'));
+        $frecuencia    = Request::get('frecuencia', '');
+        $q             = trim(Request::get('q', ''));
+        $soloPendientes = (bool) Request::get('solo_pendientes', false);
+        $creditos      = $this->model->getAdminListado('', $q, $frecuencia);
+        $stats         = $this->model->getAdminStats();
+        $this->view('admin/creditos', compact('creditos', 'frecuencia', 'q', 'stats', 'soloPendientes'));
     }
 
     // POST /admin/creditos/{id}/cancelar
@@ -158,9 +159,14 @@ class CreditosController extends Controller
         $credito    = $this->model->getConDetalles((int) $params['id']);
         if (!$credito) Response::abort(404, 'Crédito no encontrado.');
 
-        $cobradores = (new Usuario())->getCobradores();
+        $cliente = [
+            'id'     => $credito['cliente_id'],
+            'nombre' => $credito['cliente_nombre'],
+            'dni'    => $credito['dni'],
+        ];
+        $cobradores  = (new Usuario())->getCobradores();
         $modoEdicion = true;
-        $this->view('vendedor/credito_form', compact('credito', 'cobradores', 'modoEdicion'));
+        $this->view('vendedor/credito_form', compact('credito', 'cliente', 'cobradores', 'modoEdicion'));
     }
 
     // POST /admin/creditos/{id}/editar

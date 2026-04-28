@@ -1,5 +1,4 @@
 RewriteEngine On
-RewriteBase /credinor/public/
 
 # Denegar acceso a archivos sensibles
 RewriteRule ^(composer\.json|composer\.lock|package\.json|\.env)$ - [F,L]
@@ -7,7 +6,7 @@ RewriteRule ^(composer\.json|composer\.lock|package\.json|\.env)$ - [F,L]
 # Redirigir todo al front controller
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule ^(.*)$ index.php [QSA,L]
+RewriteRule ^ index.php [QSA,L]
 
 # Headers de seguridad
 Header always set X-Content-Type-Options "nosniff"
