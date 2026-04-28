@@ -38,7 +38,7 @@ $userInit = mb_strtoupper(mb_substr($userName, 0, 1));
 <!-- ====== SIDEBAR ====== -->
 <!-- On desktop (lg+): position static, always visible via CSS.
      On mobile: fixed, hidden by default; Alpine adds .open to show. -->
-<aside class="sidebar" :class="{ 'open': sidebarOpen }">
+<aside class="sidebar" :class="{ 'open': sidebarOpen }" role="navigation" aria-label="Menú principal">
 
     <!-- Logo -->
     <a href="<?= url('dashboard') ?>" class="sidebar-logo">
@@ -75,8 +75,9 @@ $userInit = mb_strtoupper(mb_substr($userName, 0, 1));
                style="color: var(--sidebar-muted);"
                onmouseover="this.style.color='#f87171'"
                onmouseout="this.style.color='var(--sidebar-muted)'"
+               aria-label="Cerrar sesión"
                title="Cerrar sesión">
-                <i class="isax isax-logout" style="font-size:1rem;"></i>
+                <i class="isax isax-logout" style="font-size:1rem;" aria-hidden="true"></i>
             </a>
         </div>
     </div>

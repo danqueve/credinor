@@ -35,12 +35,12 @@ function renderCuotaCard(array $cu, string $tipo): string
         
         <div class="flex items-start gap-3 mb-3 pl-2">
             <div class="w-10 h-10 rounded-full <?= $iconBg ?> <?= $iconColor ?> flex items-center justify-center font-bold text-sm shrink-0 border border-slate-100/50">
-                <?= htmlspecialchars($inicial) ?>
+                <?= e($inicial) ?>
             </div>
             
             <div class="flex-1 min-w-0">
                 <div class="flex justify-between items-start gap-2">
-                    <h3 class="font-bold text-slate-800 truncate text-base leading-tight"><?= htmlspecialchars($cu['cliente_nombre']) ?></h3>
+                    <h3 class="font-bold text-slate-800 truncate text-base leading-tight"><?= e($cu['cliente_nombre']) ?></h3>
                     <?php if ($diasAtr > 0): ?>
                         <span class="shrink-0 inline-flex items-center gap-1 text-[10px] font-bold text-red-600 bg-red-50 px-2 py-0.5 rounded-md border border-red-100">
                             <i class="isax isax-timer-1 text-red-500"></i> <?= $diasAtr ?>d atraso
@@ -50,7 +50,7 @@ function renderCuotaCard(array $cu, string $tipo): string
                 
                 <?php if (!empty($cu['domicilio'])): ?>
                     <p class="text-[11px] font-medium text-slate-500 flex items-center gap-1 mt-1 truncate">
-                        <i class="isax isax-location text-slate-400"></i> <?= htmlspecialchars($cu['domicilio']) ?>
+                        <i class="isax isax-location text-slate-400"></i> <?= e($cu['domicilio']) ?>
                     </p>
                 <?php endif; ?>
             </div>

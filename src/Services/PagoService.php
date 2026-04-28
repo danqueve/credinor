@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Core\Auth;
 use App\Core\Database;
+use App\Helpers\Logger;
 use App\Models\Credito;
 use App\Models\Cuota;
 use PDO;
@@ -107,10 +108,16 @@ class PagoService
                 UPDATE cuotas SET estado = ?, updated_at = NOW() WHERE id = ?
             ")->execute([$nuevoEstado, $cuotaId]);
 
+            // Verificar finalización dentro de la transacción
+            (new CreditoService())->verificarFinalizacion($cu['credito_id']);
+
             $this->db->commit();
 
-            // Verificar si el crédito se finalizó
-            (new CreditoService())->verificarFinalizacion($cu['credito_id']);
+            Logger::write('pago', $pagoId, 'pago_registrar', [
+                'cuota_id'    => $cuotaId,
+                'monto'       => $montoIngresado,
+                'metodo_pago' => $metodoPago,
+            ]);
 
             return $pagoId;
         } catch (\Throwable $e) {
@@ -181,6 +188,11 @@ class PagoService
             ")->execute([$p['credito_id'], $usuarioId, "Pago #{$pagoId} anulado: {$motivo}"]);
 
             $this->db->commit();
+
+            Logger::write('pago', $pagoId, 'pago_anular', [
+                'motivo'     => $motivo,
+                'credito_id' => $p['credito_id'],
+            ], $usuarioId);
         } catch (\Throwable $e) {
             $this->db->rollBack();
             throw $e;

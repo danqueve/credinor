@@ -7,6 +7,9 @@ use App\Core\Model;
 class Usuario extends Model
 {
     protected string $table = 'usuarios';
+    protected array $fillable = [
+        'sucursal_id', 'username', 'nombre', 'password', 'rol', 'activo',
+    ];
 
     public function findByUsername(string $username): ?array
     {

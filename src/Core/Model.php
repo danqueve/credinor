@@ -10,6 +10,9 @@ abstract class Model
     protected string $table;
     protected string $primaryKey = 'id';
 
+    /** Columnas permitidas para create/update. Si vacío, no se filtra (retrocompatible). */
+    protected array $fillable = [];
+
     public function __construct()
     {
         $this->db = Database::getInstance();
@@ -38,6 +41,10 @@ abstract class Model
     {
         $sql = "SELECT * FROM {$this->table}";
         if ($orderBy) {
+            // Solo permite: column_name, column_name ASC, column_name DESC
+            if (!preg_match('/^[a-zA-Z_][a-zA-Z0-9_.]*(\s+(ASC|DESC))?$/', $orderBy)) {
+                throw new \InvalidArgumentException("Columna de ordenamiento inválida: {$orderBy}");
+            }
             $sql .= " ORDER BY {$orderBy}";
         }
         return $this->db->query($sql)->fetchAll();
@@ -45,6 +52,7 @@ abstract class Model
 
     public function create(array $data): int
     {
+        $data = $this->filterFillable($data);
         $cols = implode(', ', array_keys($data));
         $placeholders = implode(', ', array_fill(0, count($data), '?'));
         $stmt = $this->db->prepare(
@@ -56,11 +64,20 @@ abstract class Model
 
     public function update(int $id, array $data): bool
     {
+        $data = $this->filterFillable($data);
         $sets = implode(', ', array_map(fn($k) => "{$k} = ?", array_keys($data)));
         $stmt = $this->db->prepare(
             "UPDATE {$this->table} SET {$sets} WHERE {$this->primaryKey} = ?"
         );
         return $stmt->execute([...array_values($data), $id]);
+    }
+
+    private function filterFillable(array $data): array
+    {
+        if (empty($this->fillable)) {
+            return $data;
+        }
+        return array_intersect_key($data, array_flip($this->fillable));
     }
 
     public function delete(int $id): bool

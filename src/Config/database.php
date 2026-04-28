@@ -4,9 +4,9 @@ return [
     'driver'   => 'mysql',
     'host'     => $_ENV['DB_HOST']     ?? 'localhost',
     'port'     => $_ENV['DB_PORT']     ?? '3306',
-    'database' => $_ENV['DB_DATABASE'] ?? 'a0040079_credin',
-    'username' => $_ENV['DB_USERNAME'] ?? 'a0040079_credin',
-    'password' => $_ENV['DB_PASSWORD'] ?? 'GEvulagu62',
+    'database' => $_ENV['DB_DATABASE'] ?? throw new \RuntimeException('DB_DATABASE no configurado en .env'),
+    'username' => $_ENV['DB_USERNAME'] ?? throw new \RuntimeException('DB_USERNAME no configurado en .env'),
+    'password' => $_ENV['DB_PASSWORD'] ?? throw new \RuntimeException('DB_PASSWORD no configurado en .env'),
     'charset'  => 'utf8mb4',
     'options'  => [
         PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,

@@ -1,5 +1,13 @@
 node_modules/
 vendor/
+# Permitir vendor de assets front (Alpine, Chart.js, Iconsax locales)
+!public/assets/vendor/
 .env
 .DS_Store
 Thumbs.db
+*.zip
+Manual*.pdf
+"Manual de Usuario*"
+backups/
+cron/*.lock
+.phpunit.result.cache

@@ -7,6 +7,9 @@ use App\Core\Model;
 class Sucursal extends Model
 {
     protected string $table = 'sucursales';
+    protected array $fillable = [
+        'nombre', 'direccion', 'telefono', 'activa',
+    ];
 
     public function getActivas(): array
     {

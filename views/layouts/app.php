@@ -10,11 +10,11 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
 
-    <link href="https://iconsax.gitlab.io/i/icons.css" rel="stylesheet">
+    <link href="<?= asset('vendor/iconsax.css') ?>" rel="stylesheet">
     <link rel="stylesheet" href="<?= asset('css/app.css') ?>">
     <meta name="csrf-token" content="<?= \App\Core\Session::csrfToken() ?>">
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script defer src="<?= asset('vendor/alpine.min.js') ?>"></script>
+    <script src="<?= asset('vendor/chart.min.js') ?>"></script>
 </head>
 <body class="h-full bg-slate-100/60">
 
@@ -43,8 +43,9 @@
             <!-- Mobile hamburger -->
             <button @click="sidebarOpen = !sidebarOpen"
                     class="lg:hidden mr-4 w-11 h-11 flex items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 transition-colors"
-                    aria-label="Abrir menú">
-                <i class="isax isax-menu-1 text-xl"></i>
+                    aria-label="Abrir menú"
+                    :aria-expanded="sidebarOpen">
+                <i class="isax isax-menu-1 text-xl" aria-hidden="true"></i>
             </button>
 
             <!-- Spacer -->
@@ -69,8 +70,9 @@
 
                 <a href="<?= url('logout') ?>"
                    class="w-11 h-11 flex items-center justify-center rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all"
+                   aria-label="Cerrar sesión"
                    title="Cerrar sesión">
-                    <i class="isax isax-logout text-lg"></i>
+                    <i class="isax isax-logout text-lg" aria-hidden="true"></i>
                 </a>
             </div>
         </header>

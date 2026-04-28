@@ -4,18 +4,19 @@
  *
  * Marca cuotas vencidas sin pago y verifica créditos finalizados.
  * Correr diariamente junto con devengar_mora.php.
+ *
+ *   2 0 * * * php /var/www/credinor/cron/actualizar_estados.php >> /var/log/credinor_estados.log 2>&1
  */
 
-declare(strict_types=1);
+require __DIR__ . '/_bootstrap.php';
 
-define('ROOT_PATH', dirname(__DIR__));
-define('CRON_MODE', true);
-
-require ROOT_PATH . '/vendor/autoload.php';
-
-session_start();
-$_SESSION['usuario_id'] = 1;
-$_SESSION['sucursal_id'] = 1;
+// Lock file: evita ejecuciones concurrentes
+$lockFile = sys_get_temp_dir() . '/credinor_actualizar_estados.lock';
+$lock = fopen($lockFile, 'c');
+if (!$lock || !flock($lock, LOCK_EX | LOCK_NB)) {
+    echo "[" . date('Y-m-d H:i:s') . "] SKIP actualizar_estados — otra instancia ya está corriendo.\n";
+    exit(0);
+}
 
 $service = new \App\Services\MoraService();
 
@@ -28,5 +29,10 @@ try {
     );
 } catch (\Throwable $e) {
     echo "[" . date('Y-m-d H:i:s') . "] ERROR estados: " . $e->getMessage() . "\n";
+    flock($lock, LOCK_UN);
+    fclose($lock);
     exit(1);
 }
+
+flock($lock, LOCK_UN);
+fclose($lock);

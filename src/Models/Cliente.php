@@ -7,6 +7,9 @@ use App\Core\Model;
 class Cliente extends Model
 {
     protected string $table = 'clientes';
+    protected array $fillable = [
+        'sucursal_id', 'nombre', 'dni', 'telefono', 'domicilio', 'observaciones',
+    ];
 
     public function findByDni(string $dni): ?array
     {

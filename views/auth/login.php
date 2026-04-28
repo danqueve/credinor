@@ -15,12 +15,21 @@
 
         <?php if (\App\Core\Session::hasFlash('error')): ?>
             <div class="bg-red-50 text-red-700 p-3 rounded-xl text-sm font-medium mb-6 flex items-start gap-2 border border-red-100">
-                <i class="isax isax-warning-2 mt-0.5"></i>
+                <i class="isax isax-warning-2 mt-0.5 shrink-0"></i>
                 <?= e(\App\Core\Session::getFlash('error')) ?>
             </div>
         <?php endif; ?>
 
-        <form method="POST" action="<?= url('login') ?>" novalidate>
+        <?php if (!empty($blockedUntil)): ?>
+            <div class="bg-amber-50 text-amber-800 p-3 rounded-xl text-sm font-medium mb-6 flex items-start gap-2 border border-amber-200">
+                <i class="isax isax-clock mt-0.5 shrink-0"></i>
+                Acceso bloqueado temporalmente por múltiples intentos fallidos.
+                Reintentá a las <?= date('H:i', $blockedUntil) ?>.
+            </div>
+        <?php endif; ?>
+
+        <form method="POST" action="<?= url('login') ?>" novalidate
+              <?= !empty($blockedUntil) ? 'onsubmit="return false"' : '' ?>>
             <?= csrf_field() ?>
 
             <div class="mb-5">

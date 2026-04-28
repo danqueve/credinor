@@ -3,31 +3,27 @@
  * cron/devengar_mora.php
  *
  * Cron diario para devengar mora.
+ * Idempotente: usa UNIQUE (cuota_id, fecha) en mora_devengada.
+ *
  * Ejecutar a las 00:01 de cada día:
- *
- *   php C:\wamp64\www\credinor\cron\devengar_mora.php
- *
- * En WAMP/cron de hosting, agregar:
  *   1 0 * * * php /var/www/credinor/cron/devengar_mora.php >> /var/log/credinor_mora.log 2>&1
  */
 
-declare(strict_types=1);
+require __DIR__ . '/_bootstrap.php';
 
-define('ROOT_PATH', dirname(__DIR__));
-define('CRON_MODE', true);
-
-require ROOT_PATH . '/vendor/autoload.php';
-
-// Simular Auth::id() = 1 (sistema) para el servicio
-session_start();
-$_SESSION['usuario_id'] = 1;
-$_SESSION['sucursal_id'] = 1;
+// Lock file: evita ejecuciones concurrentes
+$lockFile = sys_get_temp_dir() . '/credinor_devengar_mora.lock';
+$lock = fopen($lockFile, 'c');
+if (!$lock || !flock($lock, LOCK_EX | LOCK_NB)) {
+    echo "[" . date('Y-m-d H:i:s') . "] SKIP devengar_mora — otra instancia ya está corriendo.\n";
+    exit(0);
+}
 
 $service = new \App\Services\MoraService();
 
 try {
     $resultado = $service->devengarDia();
-    $log = sprintf(
+    echo sprintf(
         "[%s] Mora devengada — Fecha: %s | Cuotas procesadas: %d | Omitidas: %d | Total mora: $%.2f\n",
         date('Y-m-d H:i:s'),
         $resultado['fecha'],
@@ -35,8 +31,12 @@ try {
         $resultado['omitidas'],
         $resultado['mora_total']
     );
-    echo $log;
 } catch (\Throwable $e) {
     echo "[" . date('Y-m-d H:i:s') . "] ERROR mora: " . $e->getMessage() . "\n";
+    flock($lock, LOCK_UN);
+    fclose($lock);
     exit(1);
 }
+
+flock($lock, LOCK_UN);
+fclose($lock);

@@ -9,6 +9,10 @@ define('START_TIME', microtime(true));
 // Autoload
 require ROOT_PATH . '/vendor/autoload.php';
 
+// Cargar variables de entorno desde .env
+$dotenv = Dotenv\Dotenv::createImmutable(ROOT_PATH);
+$dotenv->safeLoad();
+
 // Helpers globales
 function config(string $key): mixed
 {

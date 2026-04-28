@@ -1,106 +1,140 @@
-# 💰 Crédinor - Sistema de Gestión de Créditos y Cobranzas
+# Crédinor — Sistema de Gestión de Créditos y Cobranzas
 
-Crédinor es una plataforma integral basada en la web para la gestión eficiente de microcréditos, préstamos y cobranzas diarias. Diseñada con una arquitectura MVC robusta en PHP, la plataforma ofrece herramientas especializadas para administradores, vendedores y cobradores de terreno.
-
-## ✨ Características Principales
-
-El sistema está dividido en tres perfiles operativos principales:
-
-### 👑 Administrador (Admin)
-- **Dashboard SaaS:** Visualización en tiempo real de KPIs financieros (Capital activo, mora pendiente, cobrado hoy, rendiciones pendientes).
-- **Gestión de Créditos:** Aprobación, rechazo y seguimiento del ciclo de vida completo de cada préstamo.
-- **Auditoría de Rendiciones:** Validación cruzada de las cajas cerradas por los cobradores contra los pagos físicos registrados en el sistema.
-- **Reportes Avanzados:** 
-  - *Cartera de Créditos:* Análisis de capital activo con filtros por sucursal.
-  - *Reporte de Mora:* Ranking de morosidad y KPIs de salud financiera.
-  - *Productividad:* Evaluación de rendimiento y ranking mensual de cobradores.
-- **Gestión de Usuarios y Sucursales:** Control total sobre los accesos y la distribución geográfica del negocio.
-
-### 💼 Vendedor
-- **Captación de Clientes:** Ficha detallada de clientes con validación de datos personales, laborales, referencias e historial crediticio.
-- **Simulador y Venta:** Creación rápida de planes de pago y otorgamiento de créditos.
-
-### 🏍️ Cobrador
-- **Agenda Inteligente:** Rutas de cobranza generadas automáticamente según los vencimientos del día y atrasos acumulados.
-- **Registro Móvil de Pagos:** Captura de cobros en terreno (totales o parciales) optimizada para dispositivos móviles.
-- **Cierre de Caja Ciego:** Sistema de seguridad donde el cobrador declara lo recaudado antes de ver el monto total del sistema, asegurando transparencia financiera.
-- **Historial y Recibos:** Generación de comprobantes y recibos en PDF.
+Crédinor es una plataforma web integral para la gestión de microcréditos, préstamos y cobranzas diarias. Arquitectura MVC propia en PHP 8.2 con MySQL, Tailwind CSS 3 y Alpine.js.
 
 ---
 
-## 🛠️ Stack Tecnológico
+## Características Principales
 
-- **Backend:** PHP 8.1+ (Arquitectura MVC Propia PDO).
-- **Base de Datos:** MySQL / MariaDB.
-- **Frontend / UI:** 
-  - **Tailwind CSS v4** (Diseño *Clean SaaS* / *Glassmorphism*).
-  - **Alpine.js** (Interactividad ligera y reactividad sin frameworks pesados).
-  - **Fuentes:** Outfit (Encabezados) e Inter (Datos).
-  - **Iconos:** Iconsax Premium.
+### Administrador
+- **Dashboard** con KPIs financieros en tiempo real (Chart.js).
+- **Créditos:** aprobación, rechazo, edición y seguimiento del ciclo completo.
+- **Pagos:** listado global, anulación con motivo y auditoría.
+- **Rendiciones:** validación cruzada de cajas de cobradores.
+- **Reportes:** cartera, mora y productividad de cobradores.
+- **Usuarios y Sucursales:** gestión de accesos y distribución geográfica.
+
+### Vendedor
+- Alta de clientes con datos personales y garantes.
+- Simulador y creación de planes de pago.
+
+### Cobrador
+- **Agenda inteligente** con rutas por vencimiento y atraso.
+- Registro de pagos móvil (totales o parciales).
+- **Cierre de caja ciego** (declara antes de ver el total del sistema).
+- Historial, recibos PDF y rendiciones.
 
 ---
 
-## 🚀 Guía de Instalación
+## Stack Tecnológico
 
-### 1. Requisitos Previos
-- Servidor Web (Apache/Nginx).
-- PHP 8.1 o superior (Extensiones: `pdo_mysql`, `mbstring`).
-- MySQL 5.7+ o MariaDB 10.3+.
-- Composer & Node.js (Opcional, para compilar assets).
+| Capa | Tecnología |
+|---|---|
+| Backend | PHP 8.2, MVC propio, PDO (prepared statements) |
+| Routing | nikic/fast-route |
+| PDF | dompdf/dompdf |
+| Frontend | Tailwind CSS 3.4, Alpine.js 3, Chart.js 4.4 |
+| Fuentes | Outfit + Inter (Google Fonts) |
+| Iconos | Iconsax (autohospedado en `public/assets/vendor/`) |
+| Tests | PHPUnit 11 |
 
-### 2. Clonar el repositorio
+---
+
+## Instalación
+
+### Requisitos
+- Apache/Nginx con `mod_rewrite` habilitado.
+- PHP 8.2+ con extensiones: `pdo_mysql`, `mbstring`.
+- MySQL 8.0+ o MariaDB 10.6+.
+- Composer y Node.js 18+.
+
+### 1. Clonar y configurar entorno
+
 ```bash
 git clone git@github.com:danqueve/credinor.git
 cd credinor
+
+# Copiar el archivo de entorno
+cp .env.example .env
+# Editar .env con tus credenciales de DB y URL
 ```
 
-### 3. Configuración del Entorno
-Duplica el archivo de configuración base:
-```bash
-cp src/Config/database.example.php src/Config/database.php
-# O crea tu propio archivo .env si implementas DotEnv
-```
-Asegúrate de configurar los datos de acceso a tu base de datos local (ej. `a0040079_credinor`).
+### 2. Instalar dependencias
 
-### 4. Base de Datos
-Importa los archivos de migración en orden estricto dentro de tu gestor (phpMyAdmin, DBeaver, etc.):
-1. `migrations/001_schema.sql` (Estructura base)
-2. `migrations/002_seed.sql` (Datos iniciales y superusuario)
-3. `migrations/003_mora_rendiciones.sql` (Tablas para auditoría de cajas)
-4. `migrations/004_username.sql` (Actualización de login de usuarios)
-
-### 5. Compilar Estilos (Opcional)
-Si modificas el archivo `public/assets/css/app.src.css`, debes recompilar Tailwind:
 ```bash
+composer install --optimize-autoloader
 npm install
 npm run build
 ```
 
----
+### 3. Aplicar migraciones
 
-## ⏱️ Tareas Programadas (Cron Jobs)
-
-Para el correcto funcionamiento financiero del sistema, es **obligatorio** configurar las siguientes tareas en el servidor (cPanel / Crontab) para que se ejecuten todos los días (preferentemente de madrugada):
-
-1. **Devengar Mora Diaria:** (Recomendado: `00:30 AM`)
 ```bash
-php /ruta/a/credinor/cron/devengar_mora.php
+# Ver estado
+php migrate.php --status
+
+# Aplicar todas las pendientes
+php migrate.php
 ```
 
-2. **Actualizar Estados (Vencimientos):** (Recomendado: `01:00 AM`)
-```bash
-php /ruta/a/credinor/cron/actualizar_estados.php
-```
+> Las migraciones se aplican en orden y se registran en la tabla `migrations` para no repetirse.
+
+### 4. Configurar Apache (VirtualHost o .htaccess)
+
+El DocumentRoot debe apuntar a `public/`. El `.htaccess` incluido maneja el front controller.
 
 ---
 
-## 🔐 Acceso de Prueba
+## Tareas Programadas (Cron Jobs)
 
-Al instalar la base de datos con los seeds (`002_seed.sql`), se crea un usuario administrador por defecto:
+Configurar en cPanel/crontab para ejecución diaria (madrugada):
+
+```bash
+# Devengar mora diaria — 00:01
+1 0 * * * php /ruta/credinor/cron/devengar_mora.php >> /var/log/credinor_mora.log 2>&1
+
+# Actualizar estados de cuotas — 00:02
+2 0 * * * php /var/credinor/cron/actualizar_estados.php >> /var/log/credinor_estados.log 2>&1
+
+# Backup diario — 01:30
+30 1 * * * php /ruta/credinor/cron/backup.php >> /var/log/credinor_backup.log 2>&1
+```
+
+Los cron jobs incluyen **lock files** para prevenir ejecuciones concurrentes.
+
+---
+
+## Acceso Inicial
+
+Al aplicar `000_full_install.sql`, se crea el usuario administrador:
+
 - **Usuario:** `admin`
-- **Contraseña:** `admin123`
+- **Contraseña:** `Admin1234!`
 
-*(Por motivos de seguridad, cambia esta contraseña inmediatamente después del primer inicio de sesión).*
+Cambiar la contraseña en el primer ingreso desde Perfil > Seguridad.
 
 ---
-*Desarrollado con arquitectura a medida para escalabilidad financiera.*
+
+## Tests
+
+```bash
+vendor/bin/phpunit --testdox
+```
+
+Suite de tests unitarios cubre `MoneyHelper`, `DateHelper` y validación de seguridad en `Model::all()`.
+
+---
+
+## Seguridad
+
+- Credenciales via `.env` (nunca hardcodeadas).
+- PDO con prepared statements (sin SQL injection).
+- CSRF en todos los formularios POST.
+- Rate limiting en login: bloqueo de 15 min tras 5 intentos fallidos.
+- Headers HTTP: CSP, HSTS, X-Frame-Options, X-Content-Type-Options.
+- Bcrypt cost 12 para contraseñas.
+- Log de autenticación en `auth_log`.
+
+---
+
+*PHP 8.2 · Tailwind CSS 3 · Alpine.js 3 · PHPUnit 11*
